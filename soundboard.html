@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Soundboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav style="display:flex; justify-content:center; align-items:center; gap:20px; padding:10px 20px;">
+  <!-- Logo on the left, slightly separated from the other buttons -->
+  <a href="index.html" style="margin-right:40px;">
+    <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
+  </a>
+
+  <!-- Navigation links -->
+  <a href="index.html#bottom">Over 9-2</a>
+  <a href="huidige-bewoners.html">Huidige Bewoners</a>
+  <a href="hal-van-faam.html">Hal van Faam</a>
+  <a href="contact.html">Contact</a>
+
+  <!-- Dropdown -->
+  <div class="dropdown">
+    <drop class="dropbtn">Gereedschappen</drop>
+    <div class="dropdown-content">
+      <a href="biertimer.html">Biertimer</a>
+      <a href="namenkiezer.html">Namenkiezer</a>
+      <a href="soundboard.html">Soundboard</a>
+    </div>
+  </div>
+</nav>
+  <main>
+  <h2 style="text-align: center;">CLUB 9-2 Soundboard</h2>
+  <div class="grid-soundboard">
+    <button data-sound="sounds/biertjes.mp3">Biertjes</button>
+    <button data-sound="sounds/voer.mp3">Voer</button>
+    <button data-sound="sounds/stijve-bass-boost.mp3">Stijve</button>
+    <button data-sound="sounds/duck-quacking-37392.mp3">Kwaak Kwaak Kwaak</button>
+    <button data-sound="sounds/komuitdatbed.mp3">Uit Bed</button>
+    <button data-sound="sounds/perfectgast.mp3">Perfect Gast</button>
+    <button data-sound="sounds/ovenaanzetten.mp3">Oven Aanzetten</button>
+    <button data-sound="sounds/twanboer.mp3">Boer</button>
+    
+  </div>
+</main>
+<script>
+  // Select all buttons inside the soundboard
+  const buttons = document.querySelectorAll('.grid-soundboard button');
+  let currentAudio = null; // keep track of the currently playing audio
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const soundFile = button.dataset.sound;
+
+      // If another audio is playing, stop it
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0; // reset to start
+      }
+
+      // Create and play new audio
+      currentAudio = new Audio(soundFile);
+      currentAudio.play();
+
+      // When audio ends, clear currentAudio
+      currentAudio.addEventListener('ended', () => {
+        currentAudio = null;
+      });
+    });
+  });
+</script>
+</body>
+</html>

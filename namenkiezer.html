@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Namenkiezer</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Namenkiezer container */
+    #chosenName {
+      display: inline-block;
+      height: 2em;                /* visible height of one name */
+      overflow: hidden;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      font-size: 1.5em;
+      text-align: center;
+      margin-top: 10px;
+      position: relative;
+      padding: 0 10px;
+      white-space: nowrap;
+    }
+
+    #chosenName ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      position: absolute;
+      top: 0;
+      width: 100%;
+    }
+
+    #chosenName li {
+      height: 2em;               /* same as container height */
+      line-height: 2em;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar (unchanged) -->
+  <nav style="display:flex; justify-content:center; align-items:center; gap:20px; padding:10px 20px;">
+    <a href="index.html" style="margin-right:40px;">
+      <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
+    </a>
+    <a href="index.html#bottom">Over 9-2</a>
+    <a href="huidige-bewoners.html">Huidige Bewoners</a>
+    <a href="hal-van-faam.html">Hal van Faam</a>
+    <a href="contact.html">Contact</a>
+    <div class="dropdown">
+      <drop class="dropbtn">Gereedschappen</drop>
+      <div class="dropdown-content">
+        <a href="biertimer.html">Biertimer</a>
+        <a href="namenkiezer.html">Namenkiezer</a>
+        <a href="soundboard.html">Soundboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main style="text-align: center;">
+    <h2>Namenkiezer</h2>
+    <p>Klik op de knop om een willekeurige naam te kiezen.</p>
+    <button onclick="chooseName()">Kies naam</button>
+    <div id="chosenName" style="display:block; margin:20px auto 0;">
+      <ul></ul>
+    </div>
+  </main>
+
+  <!-- JavaScript -->
+  <script>
+  const names = ['Koert', 'Dolv', 'Enzo', 'Huub', 'Kees', 'Twan', 'Geert', 'Marcel', 'Dex', 'Mart', 'Alwin', 'Canardo'];
+
+  // 🔥 Set container width based on longest name at page load
+  function adjustContainerWidth() {
+    const container = document.getElementById('chosenName');
+    let maxWidth = 0;
+    const tempSpan = document.createElement('span');
+    tempSpan.style.visibility = 'hidden';
+    tempSpan.style.position = 'absolute';
+    tempSpan.style.fontSize = '1.5em';
+    document.body.appendChild(tempSpan);
+    names.forEach(name => {
+      tempSpan.textContent = name;
+      maxWidth = Math.max(maxWidth, tempSpan.offsetWidth);
+    });
+    document.body.removeChild(tempSpan);
+    container.style.width = maxWidth + 20 + 'px'; // add padding
+  }
+
+  // Call it once when page loads
+  window.addEventListener('DOMContentLoaded', adjustContainerWidth);
+
+  function chooseName() {
+    const container = document.getElementById('chosenName');
+    const list = container.querySelector('ul');
+    list.innerHTML = '';
+
+    // Pick final name first
+    const finalName = names[Math.floor(Math.random() * names.length)];
+
+    // Build a rolling list ending with the final name
+    const totalItems = 50;
+    for (let i = 0; i < totalItems - 1; i++) {
+      const li = document.createElement('li');
+      li.textContent = names[Math.floor(Math.random() * names.length)];
+      list.appendChild(li);
+    }
+    // Append final name as last li
+    const finalLi = document.createElement('li');
+    finalLi.textContent = finalName;
+    list.appendChild(finalLi);
+
+    // Animate with ease-out over 4 seconds
+    const startTime = performance.now();
+    const duration = 4000;
+    const totalHeight = finalLi.offsetTop;
+
+    function animate(time) {
+      const elapsed = time - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+
+      list.style.top = `-${eased * totalHeight}px`;
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // Ensure final name is perfectly aligned
+        list.style.top = `-${totalHeight}px`;
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+</script>
+
+</body>
+</html>

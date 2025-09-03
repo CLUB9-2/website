@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Biertimer</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Stijl voor de stopknop */
+    #stop-button {
+      display: none; /* standaard verborgen */
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      background-color: #ffde00;
+      color: #060f2d;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+    }
+
+    #stop-button:hover {
+      background-color: #ffd700;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 10px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <audio id="timer-sound" src="sounds/biertjes.mp3" preload="auto"></audio>
+
+  <nav style="display:flex; justify-content:center; align-items:center; gap:20px; padding:10px 20px;">
+  <!-- Logo on the left, slightly separated from the other buttons -->
+  <a href="index.html" style="margin-right:40px;">
+    <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
+  </a>
+
+  <!-- Navigation links -->
+  <a href="index.html#bottom">Over 9-2</a>
+  <a href="huidige-bewoners.html">Huidige Bewoners</a>
+  <a href="hal-van-faam.html">Hal van Faam</a>
+  <a href="contact.html">Contact</a>
+
+  <!-- Dropdown -->
+  <div class="dropdown">
+    <drop class="dropbtn">Gereedschappen</drop>
+    <div class="dropdown-content">
+      <a href="biertimer.html">Biertimer</a>
+      <a href="namenkiezer.html">Namenkiezer</a>
+      <a href="soundboard.html">Soundboard</a>
+    </div>
+  </div>
+</nav>
+
+  <main style="text-align: center;">
+    <h1>Biertimer der CLUB 9-2</h1>
+    <h2>Kies hoeveel kratten je koud wilt maken:</h2>
+    <button onclick="startTimer(3000, '1 krat')">Maak 1 krat koud</button>
+    <button onclick="startTimer(5520, '2 kratten')">Maak 2 kratten koud</button>
+
+    <p id="timer"></p>
+    <button id="stop-button" onclick="stopAudio()">Bier gepakt</button>
+
+    <script>
+      let interval; // voorkomt meerdere timers tegelijk
+
+      function startTimer(seconds, label) {
+        clearInterval(interval);
+        const timerElement = document.getElementById('timer');
+        const audio = document.getElementById('timer-sound');
+        const stopButton = document.getElementById('stop-button');
+
+        // Zorg dat stopknop altijd verdwijnt bij nieuwe timer
+        stopButton.style.display = 'none';
+        audio.pause();
+        audio.currentTime = 0;
+
+        interval = setInterval(() => {
+          let min = Math.floor(seconds / 60);
+          let sec = seconds % 60;
+
+          // Enkelvoud of meervoud check
+          let tekst;
+          if (label === "1 krat") {
+            tekst = `Nog ${min}:${sec.toString().padStart(2,'0')} tot ${label} koud is!`;
+          } else {
+            tekst = `Nog ${min}:${sec.toString().padStart(2,'0')} tot ${label} koud zijn!`;
+          }
+
+          timerElement.textContent = tekst;
+          seconds--;
+
+          if (seconds < 0) {
+            clearInterval(interval);
+            timerElement.textContent = `${label} ${label === "1 krat" ? "is" : "zijn"} koud! 🍻`;
+
+            // Start audio en zet op loop
+            audio.loop = true;
+            audio.play();
+
+            // Toon de stopknop
+            stopButton.style.display = 'inline-block';
+          }
+        }, 1000);
+      }
+
+      function stopAudio() {
+        const audio = document.getElementById('timer-sound');
+        const stopButton = document.getElementById('stop-button');
+
+        audio.pause();
+        audio.currentTime = 0;
+        stopButton.style.display = 'none';
+      }
+    </script>
+  </main>
+</body>
+</html>

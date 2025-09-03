@@ -1,0 +1,276 @@
+@font-face {
+  font-family: 'Tw Cen MT Condensed Extra Bold';
+  src: url('fonts/tw-cen-mt-condensed-extrabold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+body {
+  font-family: 'Tw Cen MT Condensed Extra Bold', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #060f2d;
+  color: #ffde00;
+  object-fit: fill;
+  font-size: 100%;
+  line-height: 100%;
+}
+
+nav {
+  background: #000524;
+  font-family: 'Tw Cen MT Condensed Extra Bold', Arial, sans-serif;
+  text-align: center;
+  font-weight: 400;
+  padding: 20px 0;
+}
+
+nav a {
+  color: #384c60;
+  margin: 0 15px;
+  text-decoration: none;
+  font-size: 1.5em;
+}
+
+nav a:hover {
+  color:#ffde00;
+}
+
+main {
+  font-size:larger;
+}
+
+.grid-home {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap:20px;
+}
+
+.grid-soundboard{
+  display:grid;
+  grid-template-columns: repeat(6,2fr);
+  gap: 20px;
+}
+
+.section {
+  height: 100vh; /* Full screen height */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 5%;
+  text-align: center;
+}
+
+.section-top {
+  
+}
+
+.section-bottom {
+ 
+}
+
+/* 👇 Toegevoegd */
+h1 {
+  font-size: 3em;
+  margin-bottom: 40px; /* ruimte tussen titel en tekst */
+}
+
+h2{
+  font-size:2em;
+  margin-top:100px;
+  line-height: 1.5;
+}
+p {
+  font-size: 1.2em;
+  line-height: 1.5;
+}
+
+/* Dropdown container */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown button styled like nav links */
+.dropbtn {
+  background: none;
+  border: none;
+  font-family: 'Tw Cen MT Condensed Extra Bold', Arial, sans-serif;
+  font-size: 1.5em;
+  color: #384c60;
+  margin: 0 15px;
+  cursor: pointer;
+}
+
+.dropbtn:hover {
+  color: #ffde00;
+}
+
+/* Dropdown content */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #000524;
+  min-width: 180px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.3);
+  z-index: 1;
+  border-radius: 4px;
+  text-align: left;
+}
+
+/* Links inside dropdown */
+.dropdown-content a {
+  color: #384c60;
+  padding: 10px 15px;
+  text-decoration: none;
+  display: block;
+  font-size: 1.2em;
+}
+
+.dropdown-content a:hover {
+  color: #ffde00;
+  background-color: #060f2d;
+}
+
+/* Show dropdown on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/*Knoppen */
+button {
+  background-color: #ffde00; /* Geel */
+  color: #060f2d; /* Donkere tekst */
+  font-family: 'Tw Cen MT Condensed Extra Bold', Arial, sans-serif;
+  font-size: 1.2em;
+  padding: 15px 30px;
+  margin: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+}
+
+/* Hover-effect */
+button:hover {
+  background-color: #ffd700; /* iets lichter geel */
+  transform: translateY(-3px); /* lichte lift */
+  box-shadow: 0 6px 10px rgba(0,0,0,0.4);
+}
+
+/* Active/click-effect */
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+html{
+  scroll-behavior: smooth;
+}
+
+#chosenName {
+  display: block;       /* was inline-block */
+  margin: 20px auto 0;  /* centers and pushes it below the button */
+  height: 2em;
+  overflow: hidden;
+  border: 2px solid #ffd700;
+  border-radius: 5px;
+  font-size: 1.5em;
+  text-align: center;
+  position: relative;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+#chosenName ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 50%;                /* move to center */
+  transform: translateX(-50%); /* shift back by half width */
+  width: auto;              /* shrink to fit longest name */
+}
+
+#chosenName span {
+  display: block;
+  width: auto;
+  transform: translateY(-100%);
+  animation: rollDown 0.2s forwards;
+}
+
+@keyframes rollDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.bottom-left-img {
+  display: block;
+  width: 200px;   /* adjust size */
+  height: auto;
+}
+.grid-bewoners{
+  display:grid;
+  grid-template-columns: repeat(6,2fr);
+  gap: 20px;
+  margin-left: 40px;
+  margin-right:40px;
+  justify-items: center;
+}
+/* Each card (image + name) */
+.bewoner-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 150px;        /* fixed "passport photo" width */
+}
+
+.nestor-card {
+  position: relative;
+  display: inline-block; /* so it wraps around the image */
+}
+/* Images behave like passport photos */
+.bewoner-card img {
+  width: 100%;
+  height: 200px;       /* fixed height */
+  object-fit: contain; /* keep proportions inside box */
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background: #060f2d; /* placeholder background if image doesn't fill */
+}
+/* Images behave like passport photos */
+.nestor-card img {
+  width: 100%;
+  height: 200px;         /* fixed height */
+  object-fit: contain;   /* keep proportions inside box */
+  border: 2px solid #ffd700;  /* bigger gold border */
+  border-radius: 8px;
+  background: #ffd700;   /* placeholder background if image doesn't fill */
+}
+
+.nestor-card::before {
+  content: "Nestor";
+  position: absolute;
+  top: -0.6em;            /* move label into the border */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffd700;       /* <-- change this to match your page background */
+  padding: 0 6px;         /* space around text so it covers border */
+  font-weight: bold;
+  font-size: 1rem;
+  color: #060f2d;         /* text in gold */
+}
+
+/* Name underneath */
+.bewoner-card p {
+  margin: 2px 0 0 0;  /* top, right, bottom, left */
+  font-size: 1rem;
+  text-align: center;
+}
+/* Name underneath */
+.nestor-card p {
+  margin: 2px 0 0 0;  /* top, right, bottom, left */
+  font-size: 1rem;
+  text-align: center;
+}

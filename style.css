@@ -79,6 +79,12 @@ h2{
   margin-top:100px;
   line-height: 1.5;
 }
+h3{
+  font-size:2em;
+  margin-top:40px;
+  line-height: 1.5;
+}
+
 p {
   font-size: 1.2em;
   line-height: 1.5;

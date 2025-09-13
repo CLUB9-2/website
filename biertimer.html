@@ -113,6 +113,12 @@
         audio.currentTime = 0;
         stopButton.style.display = 'none';
       }
+      //bevcstiging voor pagina sluit
+      window.addEventListener("beforeunload", function (e) {
+        e.preventDefault();
+        e.returnValue = ""; // verplicht om de dialoog te tonen
+      });
+
     </script>
   </main>
 </body>

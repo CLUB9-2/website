@@ -63,7 +63,8 @@
     <button id="stop-button" onclick="stopAudio()">Bier gepakt</button>
 
     <script>
-      let interval; // voorkomt meerdere timers tegelijk
+      let interval; 
+      let timerActive = false; // NEW flag
 
       function startTimer(seconds, label) {
         clearInterval(interval);
@@ -71,16 +72,16 @@
         const audio = document.getElementById('timer-sound');
         const stopButton = document.getElementById('stop-button');
 
-        // Zorg dat stopknop altijd verdwijnt bij nieuwe timer
         stopButton.style.display = 'none';
         audio.pause();
         audio.currentTime = 0;
+
+        timerActive = true; // mark timer as active
 
         interval = setInterval(() => {
           let min = Math.floor(seconds / 60);
           let sec = seconds % 60;
 
-          // Enkelvoud of meervoud check
           let tekst;
           if (label === "1 krat") {
             tekst = `Nog ${min}:${sec.toString().padStart(2,'0')} tot ${label} koud is!`;
@@ -93,13 +94,12 @@
 
           if (seconds < 0) {
             clearInterval(interval);
+            timerActive = false; // timer finished
+
             timerElement.textContent = `${label} ${label === "1 krat" ? "is" : "zijn"} koud! 🍻`;
 
-            // Start audio en zet op loop
             audio.loop = true;
             audio.play();
-
-            // Toon de stopknop
             stopButton.style.display = 'inline-block';
           }
         }, 1000);
@@ -112,11 +112,15 @@
         audio.pause();
         audio.currentTime = 0;
         stopButton.style.display = 'none';
+        timerActive = false; // stop button clears flag
       }
-      //bevcstiging voor pagina sluit
+
+      // only warn if timer is running
       window.addEventListener("beforeunload", function (e) {
-        e.preventDefault();
-        e.returnValue = ""; // verplicht om de dialoog te tonen
+        if (timerActive) {
+          e.preventDefault();
+          e.returnValue = "";
+        }
       });
 
     </script>

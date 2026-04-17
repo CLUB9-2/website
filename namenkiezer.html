@@ -37,11 +37,12 @@
 </head>
 <body>
   <!-- Navbar (unchanged) -->
-  <nav style="display:flex; justify-content:center; align-items:center; gap:20px; padding:10px 20px;">
-    <a href="index.html" style="margin-right:40px;">
+  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
+    <a href="index.html" style="margin-right:20px;">
       <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
     </a>
     <a href="index.html#bottom">Over 9-2</a>
+    <a href="avondeten.html">Avondeten</a>
     <a href="huidige-bewoners.html">Huidige Bewoners</a>
     <a href="hal-van-faam.html">Hal van Faam</a>
     <a href="bierkoningschap.html">Bierkoningschap</a>
@@ -54,6 +55,7 @@
         <a href="soundboard.html">Soundboard</a>
       </div>
     </div>
+    <a href="login.html" style="color:#384c60; text-decoration:none;">Inloggen</a>
   </nav>
 
   <!-- Main content -->
@@ -123,16 +125,4 @@
       list.style.top = `-${eased * totalHeight}px`;
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        // Ensure final name is perfectly aligned
-        list.style.top = `-${totalHeight}px`;
-      }
-    }
-
-    requestAnimationFrame(animate);
-  }
-</script>
-
-</body>
-</html>
+        requestAn

@@ -5,6 +5,7 @@
   <title>Bierkoningschap</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     .bk-wrap {
       max-width: 1200px;
@@ -120,21 +121,133 @@
       text-align: center;
       margin-top: 8px;
     }
+    .bk-loading {
+      text-align: center;
+      color: #384c60;
+      padding: 40px;
+      font-size: 1.2em;
+    }
+    .bk-error {
+      text-align: center;
+      color: #cc4444;
+      padding: 20px;
+      background: #1a0505;
+      border: 1px solid #cc4444;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    /* Admin UI */
+    .bk-admin {
+      background: #000524;
+      border: 1px solid #384c60;
+      border-radius: 8px;
+      padding: 24px;
+      margin: 40px 0;
+    }
+    .bk-admin h3 {
+      color: #ffde00;
+      margin: 0 0 20px;
+      font-size: 1.4em;
+    }
+    .bk-admin-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .bk-auth-link {
+      color: #384c60;
+      font-size: 0.95em;
+      text-decoration: none;
+    }
+    .bk-auth-link:hover { color: #ffde00; }
+    .bk-form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .bk-form-grid label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.85em;
+      color: #384c60;
+    }
+    .bk-form-grid input {
+      background: #060f2d;
+      border: 1px solid #384c60;
+      border-radius: 4px;
+      color: #ffde00;
+      font-family: inherit;
+      font-size: 0.95em;
+      padding: 6px 8px;
+    }
+    .bk-form-grid input:focus {
+      outline: none;
+      border-color: #ffde00;
+    }
+    .bk-btn {
+      background: #ffde00;
+      color: #060f2d;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-family: inherit;
+      font-size: 0.95em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .bk-btn:hover { background: #ffd700; }
+    .bk-btn-sm {
+      padding: 4px 10px;
+      font-size: 0.85em;
+      margin: 0 2px;
+    }
+    .bk-btn-danger {
+      background: #8b1a1a;
+      color: #ffde00;
+    }
+    .bk-btn-danger:hover { background: #aa2222; }
+    .bk-btn-secondary {
+      background: #384c60;
+      color: #ffde00;
+    }
+    .bk-btn-secondary:hover { background: #4a6080; }
+    .bk-admin-msg {
+      font-size: 0.9em;
+      color: #384c60;
+      margin-top: 8px;
+    }
+    tr.bk-edit-row td { background: #0a1740; }
+    tr.bk-edit-row input {
+      background: #060f2d;
+      border: 1px solid #384c60;
+      border-radius: 4px;
+      color: #ffde00;
+      font-family: inherit;
+      font-size: 0.9em;
+      padding: 4px 6px;
+      width: 90%;
+    }
     @media (max-width: 800px) {
       .bk-hero { grid-template-columns: 1fr; }
       .bk-stats { grid-template-columns: repeat(2, 1fr); }
       .bk-hero-name { font-size: 2.8em; }
       table.bk-table { font-size: 0.85em; }
       table.bk-table th, table.bk-table td { padding: 6px 6px; }
+      .bk-form-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
-  <nav style="display:flex; justify-content:center; align-items:center; gap:20px; padding:10px 20px;">
-    <a href="index.html" style="margin-right:40px;">
+  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
+    <a href="index.html" style="margin-right:20px;">
       <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
     </a>
     <a href="index.html#bottom">Over 9-2</a>
+    <a href="avondeten.html">Avondeten</a>
     <a href="huidige-bewoners.html">Huidige Bewoners</a>
     <a href="hal-van-faam.html">Hal van Faam</a>
     <a href="bierkoningschap.html">Bierkoningschap</a>
@@ -147,6 +260,7 @@
         <a href="soundboard.html">Soundboard</a>
       </div>
     </div>
+    <a href="login.html" style="color:#384c60; text-decoration:none;" id="nav-login-link">Inloggen</a>
   </nav>
 
   <main>
@@ -156,39 +270,70 @@
         Sinds 2010 strijden de bewoners van CLUB 9-2 om de eervolle titel van <em>Bierkoning</em>. Hieronder een overzicht van alle regeerperioden.
       </p>
 
+      <div id="bk-error" class="bk-error" style="display:none;"></div>
+
       <!-- Hero: current bierkoning -->
       <div class="bk-hero" id="bk-hero">
         <div>
           <p class="bk-hero-title">HUIDIGE BIERKONING</p>
-          <h1 class="bk-hero-name" id="bk-current-name"></h1>
+          <h1 class="bk-hero-name" id="bk-current-name">Laden...</h1>
           <p class="bk-hero-sub" id="bk-current-period"></p>
         </div>
         <div class="bk-stats">
           <div class="bk-stat">
-            <div class="bk-stat-value" id="bk-current-dagen"></div>
+            <div class="bk-stat-value" id="bk-current-dagen">—</div>
             <div class="bk-stat-label">Dagen regerend</div>
           </div>
           <div class="bk-stat">
-            <div class="bk-stat-value" id="bk-current-totaal"></div>
+            <div class="bk-stat-value" id="bk-current-totaal">—</div>
             <div class="bk-stat-label">Totaal bier</div>
           </div>
           <div class="bk-stat">
-            <div class="bk-stat-value" id="bk-current-gem"></div>
+            <div class="bk-stat-value" id="bk-current-gem">—</div>
             <div class="bk-stat-label">Gem. bier/dag</div>
           </div>
           <div class="bk-stat">
-            <div class="bk-stat-value" id="bk-current-huis"></div>
+            <div class="bk-stat-value" id="bk-current-huis">—</div>
             <div class="bk-stat-label">Huis totaal</div>
           </div>
           <div class="bk-stat">
-            <div class="bk-stat-value" id="bk-current-huisgem"></div>
+            <div class="bk-stat-value" id="bk-current-huisgem">—</div>
             <div class="bk-stat-label">Huis gem./dag</div>
           </div>
           <div class="bk-stat">
-            <div class="bk-stat-value" id="bk-current-pct"></div>
+            <div class="bk-stat-value" id="bk-current-pct">—</div>
             <div class="bk-stat-label">Aandeel v. huis</div>
           </div>
         </div>
+      </div>
+
+      <!-- Admin section -->
+      <div class="bk-admin" id="bk-admin" style="display:none;">
+        <div class="bk-admin-bar">
+          <h3 style="margin:0;">Admin</h3>
+          <button class="bk-btn bk-btn-secondary bk-btn-sm" id="bk-logout-btn">Uitloggen</button>
+        </div>
+
+        <h3>Nieuwe reign toevoegen</h3>
+        <form id="bk-add-form">
+          <div class="bk-form-grid">
+            <label>Einddatum<input type="date" name="datum" required></label>
+            <label>Bierkoning<input type="text" name="bierkoning" required placeholder="Naam"></label>
+            <label>Dagen<input type="number" name="dagen" required min="1"></label>
+            <label>Totaal BK<input type="text" name="totaal_bk" placeholder="bijv. 150"></label>
+            <label>Gem. BK<input type="text" name="gem_bk" placeholder="bijv. 3,14"></label>
+            <label>Totaal huis<input type="text" name="totaal_huis" placeholder="bijv. 2000"></label>
+            <label>Gem. huis<input type="text" name="gem_huis" placeholder="bijv. 25,5"></label>
+            <label>% v. huis<input type="text" name="pct" placeholder="bijv. 0,15"></label>
+          </div>
+          <button type="submit" class="bk-btn">Toevoegen</button>
+          <span class="bk-admin-msg" id="bk-add-msg"></span>
+        </form>
+      </div>
+
+      <!-- No-auth admin hint -->
+      <div id="bk-login-hint" style="text-align:right; margin-bottom: 8px; display:none;">
+        <a href="login.html" class="bk-auth-link">&#x1F512; Inloggen als admin</a>
       </div>
 
       <!-- Chart -->
@@ -200,7 +345,8 @@
 
       <!-- Chronological table -->
       <h3 class="bk-section-title">Chronologisch overzicht</h3>
-      <table class="bk-table" id="bk-table">
+      <div id="bk-table-loading" class="bk-loading">Laden...</div>
+      <table class="bk-table" id="bk-table" style="display:none;">
         <thead>
           <tr>
             <th data-key="datum" data-type="date">Einddatum &#x25B2;&#x25BC;</th>
@@ -211,6 +357,7 @@
             <th data-key="totaal_huis" data-type="num">Totaal huis &#x25B2;&#x25BC;</th>
             <th data-key="gem_huis" data-type="num">Gem. huis &#x25B2;&#x25BC;</th>
             <th data-key="pct" data-type="num">% v. huis &#x25B2;&#x25BC;</th>
+            <th id="bk-actions-col" style="display:none;"></th>
           </tr>
         </thead>
         <tbody id="bk-tbody"></tbody>
@@ -220,103 +367,56 @@
   </main>
 
   <script>
-  // === Bierkoningschap data (from Bierkoningschap.xlsx) ===
-  const reigns = [
-    {datum:"2010-08-22", bierkoning:"Jasper",  dagen:80,  totaal_bk:118, gem_bk:1.475,       totaal_huis:930,  gem_huis:11.625,      pct:0.12688},
-    {datum:"2010-10-24", bierkoning:"Kees",    dagen:63,  totaal_bk:256, gem_bk:4.063492063, totaal_huis:1487, gem_huis:23.6031746,  pct:0.17216},
-    {datum:"2010-12-30", bierkoning:"Kees",    dagen:67,  totaal_bk:18,  gem_bk:0.2686567164,totaal_huis:89,   gem_huis:1.328358209, pct:0.20225},
-    {datum:"2011-04-07", bierkoning:"Kees",    dagen:98,  totaal_bk:179, gem_bk:1.826530612, totaal_huis:1132, gem_huis:11.55102041, pct:0.15813},
-    {datum:"2011-06-14", bierkoning:"Kees",    dagen:68,  totaal_bk:154, gem_bk:2.264705882, totaal_huis:1063, gem_huis:15.63235294, pct:0.14487},
-    {datum:"2011-08-22", bierkoning:"Robin",   dagen:69,  totaal_bk:139, gem_bk:2.014492754, totaal_huis:730,  gem_huis:10.57971014, pct:0.19041},
-    {datum:"2011-11-17", bierkoning:"Kees",    dagen:87,  totaal_bk:225, gem_bk:2.586206897, totaal_huis:1227, gem_huis:14.10344828, pct:0.18337},
-    {datum:"2012-04-16", bierkoning:"Kees",    dagen:151, totaal_bk:289, gem_bk:1.913907285, totaal_huis:1671, gem_huis:11.06622517, pct:0.17295},
-    {datum:"2013-03-17", bierkoning:"missend", dagen:335, totaal_bk:null,gem_bk:null,        totaal_huis:null, gem_huis:null,        pct:null, gap:true},
-    {datum:"2013-05-17", bierkoning:"Kees",    dagen:61,  totaal_bk:106, gem_bk:1.737704918, totaal_huis:561,  gem_huis:9.196721311, pct:0.18895},
-    {datum:"2013-07-15", bierkoning:"Niels",   dagen:59,  totaal_bk:136, gem_bk:2.305084746, totaal_huis:481,  gem_huis:8.152542373, pct:0.28274},
-    {datum:"2014-01-06", bierkoning:"Kai",     dagen:175, totaal_bk:255, gem_bk:1.457142857, totaal_huis:1751, gem_huis:10.00571429, pct:0.14563},
-    {datum:"2014-06-07", bierkoning:"Niels",   dagen:152, totaal_bk:305, gem_bk:2.006578947, totaal_huis:2080, gem_huis:13.68421053, pct:0.14663},
-    {datum:"2014-10-15", bierkoning:"Nick",    dagen:130, totaal_bk:274, gem_bk:2.107692308, totaal_huis:1722, gem_huis:13.24615385, pct:0.15912},
-    {datum:"2014-11-19", bierkoning:"Kees",    dagen:35,  totaal_bk:48,  gem_bk:1.371428571, totaal_huis:285,  gem_huis:8.142857143, pct:0.16842},
-    {datum:"2015-01-15", bierkoning:"Nick",    dagen:57,  totaal_bk:129, gem_bk:2.263157895, totaal_huis:619,  gem_huis:10.85964912, pct:0.20840},
-    {datum:"2015-03-07", bierkoning:"Willem",  dagen:51,  totaal_bk:107, gem_bk:2.098039216, totaal_huis:451,  gem_huis:8.843137255, pct:0.23725},
-    {datum:"2015-04-29", bierkoning:"Nick",    dagen:53,  totaal_bk:158, gem_bk:2.981132075, totaal_huis:758,  gem_huis:14.30188679, pct:0.20844},
-    {datum:"2015-07-07", bierkoning:"Nick",    dagen:69,  totaal_bk:225, gem_bk:3.260869565, totaal_huis:1189, gem_huis:17.23188406, pct:0.18923},
-    {datum:"2015-09-08", bierkoning:"Nick",    dagen:63,  totaal_bk:174, gem_bk:2.761904762, totaal_huis:726,  gem_huis:11.52380952, pct:0.23967},
-    {datum:"2015-12-10", bierkoning:"Willem",  dagen:93,  totaal_bk:181, gem_bk:1.946236559, totaal_huis:1038, gem_huis:11.16129032, pct:0.17437},
-    {datum:"2016-01-28", bierkoning:"Wouter",  dagen:49,  totaal_bk:137, gem_bk:2.795918367, totaal_huis:690,  gem_huis:14.08163265, pct:0.19855},
-    {datum:"2016-04-26", bierkoning:"Simon",   dagen:89,  totaal_bk:221, gem_bk:2.483146067, totaal_huis:1229, gem_huis:13.80898876, pct:0.17982},
-    {datum:"2016-08-09", bierkoning:"Nick",    dagen:105, totaal_bk:382, gem_bk:3.638095238, totaal_huis:2101, gem_huis:20.00952381, pct:0.18182},
-    {datum:"2016-09-07", bierkoning:"Simon",   dagen:29,  totaal_bk:124, gem_bk:4.275862069, totaal_huis:979,  gem_huis:33.75862069, pct:0.12666},
-    {datum:"2016-10-16", bierkoning:"Simon",   dagen:39,  totaal_bk:157, gem_bk:4.025641026, totaal_huis:1366, gem_huis:35.02564103, pct:0.11493},
-    {datum:"2016-11-27", bierkoning:"Nick",    dagen:42,  totaal_bk:191, gem_bk:4.547619048, totaal_huis:1125, gem_huis:26.78571429, pct:0.16978},
-    {datum:"2017-01-16", bierkoning:"Willem",  dagen:50,  totaal_bk:182, gem_bk:3.64,        totaal_huis:1281, gem_huis:25.62,       pct:0.14208},
-    {datum:"2017-03-11", bierkoning:"Nick",    dagen:54,  totaal_bk:187, gem_bk:3.462962963, totaal_huis:1237, gem_huis:22.90740741, pct:0.15117},
-    {datum:"2017-04-10", bierkoning:"Simon",   dagen:30,  totaal_bk:104, gem_bk:3.466666667, totaal_huis:494,  gem_huis:16.46666667, pct:0.21053},
-    {datum:"2017-07-08", bierkoning:"Willem",  dagen:89,  totaal_bk:378, gem_bk:4.247191011, totaal_huis:2195, gem_huis:24.66292135, pct:0.17221},
-    {datum:"2017-09-16", bierkoning:"Nick",    dagen:70,  totaal_bk:285, gem_bk:4.071428571, totaal_huis:1582, gem_huis:22.6,        pct:0.18015},
-    {datum:"2018-01-03", bierkoning:"Willem",  dagen:109, totaal_bk:475, gem_bk:4.357798165, totaal_huis:2880, gem_huis:26.42201835, pct:0.16493},
-    {datum:"2018-03-07", bierkoning:"Niels",   dagen:63,  totaal_bk:330, gem_bk:5.238095238, totaal_huis:2098, gem_huis:33.3015873,  pct:0.15729},
-    {datum:"2018-08-12", bierkoning:"Nick",    dagen:158, totaal_bk:736, gem_bk:4.658227848, totaal_huis:4689, gem_huis:29.67721519, pct:0.15696},
-    {datum:"2018-11-20", bierkoning:"Nick",    dagen:100, totaal_bk:386, gem_bk:3.86,        totaal_huis:2805, gem_huis:28.05,       pct:0.13761},
-    {datum:"2019-01-10", bierkoning:"Niels",   dagen:51,  totaal_bk:279, gem_bk:5.470588235, totaal_huis:1629, gem_huis:31.94117647, pct:0.17127},
-    {datum:"2019-04-07", bierkoning:"Simon",   dagen:87,  totaal_bk:316, gem_bk:3.632183908, totaal_huis:2306, gem_huis:26.50574713, pct:0.13703},
-    {datum:"2019-07-20", bierkoning:"Niels",   dagen:104, totaal_bk:392, gem_bk:3.769230769, totaal_huis:2581, gem_huis:24.81730769, pct:0.15188},
-    {datum:"2019-10-01", bierkoning:"Simon",   dagen:73,  totaal_bk:295, gem_bk:4.04109589,  totaal_huis:1967, gem_huis:26.94520548, pct:0.14997},
-    {datum:"2020-01-04", bierkoning:"Willem",  dagen:95,  totaal_bk:359, gem_bk:3.778947368, totaal_huis:2446, gem_huis:25.74736842, pct:0.14677},
-    {datum:"2020-04-21", bierkoning:"Simon",   dagen:108, totaal_bk:438, gem_bk:4.055555556, totaal_huis:2829, gem_huis:26.19444444, pct:0.15483},
-    {datum:"2020-10-07", bierkoning:"Willem",  dagen:169, totaal_bk:944, gem_bk:5.585798817, totaal_huis:7681, gem_huis:45.44970414, pct:0.12290},
-    {datum:"2021-02-03", bierkoning:"Niels",   dagen:119, totaal_bk:617, gem_bk:5.18487395,  totaal_huis:4518, gem_huis:37.96638655, pct:0.13656},
-    {datum:"2021-04-24", bierkoning:"Floris",  dagen:81,  totaal_bk:512, gem_bk:6.320987654, totaal_huis:3948, gem_huis:48.74074074, pct:0.12969},
-    {datum:"2021-07-13", bierkoning:"Willem",  dagen:80,  totaal_bk:428, gem_bk:5.35,        totaal_huis:3723, gem_huis:46.5375,     pct:0.11496},
-    {datum:"2021-10-01", bierkoning:"Yous",    dagen:80,  totaal_bk:483, gem_bk:6.0375,      totaal_huis:5128, gem_huis:64.1,        pct:0.09419},
-    {datum:"2021-12-13", bierkoning:"Floris",  dagen:73,  totaal_bk:335, gem_bk:4.589041096, totaal_huis:3859, gem_huis:52.8630137,  pct:0.08681},
-    {datum:"2022-05-22", bierkoning:"Koert",   dagen:160, totaal_bk:694, gem_bk:4.3375,      totaal_huis:5015, gem_huis:31.34375,    pct:0.13838},
-    {datum:"2022-09-14", bierkoning:"Koert",   dagen:115, totaal_bk:529, gem_bk:4.6,         totaal_huis:3512, gem_huis:30.53913043, pct:0.15063},
-    {datum:"2022-11-23", bierkoning:"Dolv",    dagen:70,  totaal_bk:259, gem_bk:3.7,         totaal_huis:2116, gem_huis:30.22857143, pct:0.12240},
-    {datum:"2023-03-01", bierkoning:"Koert",   dagen:98,  totaal_bk:241, gem_bk:2.459183673, totaal_huis:2438, gem_huis:24.87755102, pct:0.09885},
-    {datum:"2023-05-03", bierkoning:"Gijs",    dagen:63,  totaal_bk:198, gem_bk:3.142857143, totaal_huis:1539, gem_huis:24.42857143, pct:0.12865},
-    {datum:"2023-07-15", bierkoning:"Twan",    dagen:73,  totaal_bk:305, gem_bk:4.178082192, totaal_huis:1922, gem_huis:26.32876712, pct:0.15869},
-    {datum:"2023-09-26", bierkoning:"Twan",    dagen:73,  totaal_bk:282, gem_bk:3.863013699, totaal_huis:1443, gem_huis:19.76712329, pct:0.19543},
-    {datum:"2023-11-16", bierkoning:"Huub",    dagen:51,  totaal_bk:139, gem_bk:2.725490196, totaal_huis:1110, gem_huis:21.76470588, pct:0.12523},
-    {datum:"2024-02-16", bierkoning:"Dolv",    dagen:92,  totaal_bk:110, gem_bk:1.195652174, totaal_huis:1330, gem_huis:14.45652174, pct:0.08271},
-    {datum:"2024-05-06", bierkoning:"Gijs",    dagen:80,  totaal_bk:64,  gem_bk:0.8,         totaal_huis:936,  gem_huis:11.7,        pct:0.06838},
-    {datum:"2024-07-08", bierkoning:"Twan",    dagen:63,  totaal_bk:120, gem_bk:1.904761905, totaal_huis:1156, gem_huis:18.34920635, pct:0.10381},
-    {datum:"2024-09-03", bierkoning:"Floris",  dagen:57,  totaal_bk:63,  gem_bk:1.105263158, totaal_huis:585,  gem_huis:10.26315789, pct:0.10769},
-    {datum:"2025-02-04", bierkoning:"Koert",   dagen:154, totaal_bk:77,  gem_bk:0.5,         totaal_huis:513,  gem_huis:3.331168831, pct:0.15010},
-    {datum:"2025-04-27", bierkoning:"Gijs",    dagen:82,  totaal_bk:90,  gem_bk:1.097560976, totaal_huis:890,  gem_huis:10.85365854, pct:0.10112},
-    {datum:"2025-09-04", bierkoning:"Koert",   dagen:130, totaal_bk:140, gem_bk:1.076923077, totaal_huis:1125, gem_huis:8.653846154, pct:0.12444}
-  ];
+  // === Supabase init ===
+  const SUPABASE_URL  = 'https://yqrmrfuvsdsckqcbmkyb.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlxcm1yZnV2c2RzY2txY2Jta3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0Mjc0NDYsImV4cCI6MjA5MjAwMzQ0Nn0.GG1R1V-2iXuEVTpbIL8wX5qjW4Qjk91oMLY4Dy-G0xw';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
   // === Helpers ===
-  const fmtNL = (n, d=2) => (n==null ? "" : n.toLocaleString("nl-NL", {minimumFractionDigits:d, maximumFractionDigits:d}));
-  const fmtInt = (n) => (n==null ? "" : Math.round(n).toLocaleString("nl-NL"));
-  const fmtPct = (n) => (n==null ? "" : (n*100).toLocaleString("nl-NL", {minimumFractionDigits:1, maximumFractionDigits:1}) + "%");
-  const fmtDate = (iso) => {
-    const [y,m,d] = iso.split("-");
-    return `${d}-${m}-${y}`;
-  };
+  const fmtNL   = (n, d=2) => (n==null ? "" : (+n).toLocaleString("nl-NL", {minimumFractionDigits:d, maximumFractionDigits:d}));
+  const fmtInt  = (n)      => (n==null ? "" : Math.round(+n).toLocaleString("nl-NL"));
+  const fmtPct  = (n)      => (n==null ? "" : ((+n)*100).toLocaleString("nl-NL", {minimumFractionDigits:1, maximumFractionDigits:1}) + "%");
+  const fmtDate = (iso)    => { const [y,m,d] = iso.split("-"); return `${d}-${m}-${y}`; };
+  // Parse NL decimal (comma or dot)
+  const parseNL = (s) => s == null || s === "" ? null : parseFloat(String(s).replace(",", "."));
 
-  // === Current bierkoning hero ===
-  const current = reigns[reigns.length - 1];
-  const prevEnd = reigns[reigns.length - 2].datum;
-  document.getElementById("bk-current-name").textContent = current.bierkoning;
-  document.getElementById("bk-current-period").textContent =
-    `Regeert sinds ${fmtDate(prevEnd)} \u00B7 ingemeten t/m ${fmtDate(current.datum)}`;
-  document.getElementById("bk-current-dagen").textContent = fmtInt(current.dagen);
-  document.getElementById("bk-current-totaal").textContent = fmtInt(current.totaal_bk);
-  document.getElementById("bk-current-gem").textContent = fmtNL(current.gem_bk, 2);
-  document.getElementById("bk-current-huis").textContent = fmtInt(current.totaal_huis);
-  document.getElementById("bk-current-huisgem").textContent = fmtNL(current.gem_huis, 1);
-  document.getElementById("bk-current-pct").textContent = fmtPct(current.pct);
+  let reigns = [];
+  let sortState = { key: null, dir: 1 };
+  let chartInstance = null;
+  let isAdmin = false;
 
-  // === Table render + sort ===
-  const tbody = document.getElementById("bk-tbody");
+  function showError(msg) {
+    const el = document.getElementById("bk-error");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  // === Hero ===
+  function renderHero(data) {
+    const current = data[data.length - 1];
+    const prev    = data[data.length - 2];
+    document.getElementById("bk-current-name").textContent    = current.bierkoning;
+    document.getElementById("bk-current-period").textContent  =
+      `Regeert sinds ${fmtDate(prev.datum)} \u00B7 ingemeten t/m ${fmtDate(current.datum)}`;
+    document.getElementById("bk-current-dagen").textContent   = fmtInt(current.dagen);
+    document.getElementById("bk-current-totaal").textContent  = fmtInt(current.totaal_bk);
+    document.getElementById("bk-current-gem").textContent     = fmtNL(current.gem_bk, 2);
+    document.getElementById("bk-current-huis").textContent    = fmtInt(current.totaal_huis);
+    document.getElementById("bk-current-huisgem").textContent = fmtNL(current.gem_huis, 1);
+    document.getElementById("bk-current-pct").textContent     = fmtPct(current.pct);
+  }
+
+  // === Table ===
   function renderTable(rows) {
+    const tbody   = document.getElementById("bk-tbody");
+    const current = reigns[reigns.length - 1];
     tbody.innerHTML = "";
     rows.forEach(r => {
       const tr = document.createElement("tr");
-      if (r.gap) tr.classList.add("bk-gap");
-      if (r === current) tr.classList.add("bk-current");
+      if (r.gap)     tr.classList.add("bk-gap");
+      if (r.id === current?.id) tr.classList.add("bk-current");
+
       tr.innerHTML = `
         <td>${fmtDate(r.datum)}</td>
         <td>${r.bierkoning}</td>
@@ -326,16 +426,100 @@
         <td>${r.gap ? "&mdash;" : fmtInt(r.totaal_huis)}</td>
         <td>${r.gap ? "&mdash;" : fmtNL(r.gem_huis, 1)}</td>
         <td>${r.gap ? "&mdash;" : fmtPct(r.pct)}</td>
+        ${isAdmin ? `<td>
+          <button class="bk-btn bk-btn-sm bk-btn-secondary" onclick="startEdit('${r.id}')">Bewerk</button>
+          <button class="bk-btn bk-btn-sm bk-btn-danger" onclick="deleteReign('${r.id}')">&#x1F5D1;</button>
+        </td>` : ''}
       `;
       tbody.appendChild(tr);
     });
   }
-  renderTable(reigns);
 
-  let sortState = { key: null, dir: 1 };
-  document.querySelectorAll("#bk-table thead th").forEach(th => {
+  // === Chart ===
+  function renderChart(data) {
+    const chartData = data.filter(r => !r.gap);
+    const ctx = document.getElementById("bk-chart").getContext("2d");
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: chartData.map(r => r.datum),
+        datasets: [
+          {
+            label: "Gem. bier/dag \u2014 Bierkoning",
+            data: chartData.map(r => r.gem_bk),
+            borderColor: "#ffde00",
+            backgroundColor: "rgba(255, 222, 0, 0.15)",
+            borderWidth: 2,
+            tension: 0.25,
+            pointRadius: 3,
+            pointBackgroundColor: "#ffde00",
+            yAxisID: "y",
+          },
+          {
+            label: "Gem. bier/dag \u2014 Huis (0,3 L)",
+            data: chartData.map(r => r.gem_huis),
+            borderColor: "#6688cc",
+            backgroundColor: "rgba(102, 136, 204, 0.1)",
+            borderWidth: 2,
+            tension: 0.25,
+            pointRadius: 2,
+            pointBackgroundColor: "#6688cc",
+            yAxisID: "y1",
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { labels: { color: "#ffde00", font: { size: 13 } } },
+          tooltip: {
+            callbacks: {
+              title: (items) => {
+                const idx = items[0].dataIndex;
+                const r = chartData[idx];
+                return `${fmtDate(r.datum)} \u2014 ${r.bierkoning}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: "category",
+            ticks: {
+              color: "#384c60",
+              maxRotation: 0,
+              autoSkip: true,
+              callback: function(val, idx) {
+                const d = chartData[idx]?.datum || "";
+                return d.slice(0,4);
+              }
+            },
+            grid: { color: "rgba(56,76,96,0.2)" }
+          },
+          y: {
+            position: "left",
+            title: { display: true, text: "Bierkoning [bier/dag]", color: "#ffde00" },
+            ticks: { color: "#ffde00" },
+            grid: { color: "rgba(56,76,96,0.2)" }
+          },
+          y1: {
+            position: "right",
+            title: { display: true, text: "Huis [0,3 L/dag]", color: "#6688cc" },
+            ticks: { color: "#6688cc" },
+            grid: { drawOnChartArea: false }
+          }
+        }
+      }
+    });
+  }
+
+  // === Sort ===
+  document.querySelectorAll("#bk-table thead th[data-key]").forEach(th => {
     th.addEventListener("click", () => {
-      const key = th.dataset.key;
+      const key  = th.dataset.key;
       const type = th.dataset.type;
       if (sortState.key === key) sortState.dir *= -1;
       else { sortState.key = key; sortState.dir = (type === "str" ? 1 : -1); }
@@ -350,83 +534,87 @@
     });
   });
 
-  // === Chart ===
-  const chartData = reigns.filter(r => !r.gap);
-  const ctx = document.getElementById("bk-chart").getContext("2d");
-  new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: chartData.map(r => r.datum),
-      datasets: [
-        {
-          label: "Gem. bier/dag \u2014 Bierkoning",
-          data: chartData.map(r => r.gem_bk),
-          borderColor: "#ffde00",
-          backgroundColor: "rgba(255, 222, 0, 0.15)",
-          borderWidth: 2,
-          tension: 0.25,
-          pointRadius: 3,
-          pointBackgroundColor: "#ffde00",
-          yAxisID: "y",
-        },
-        {
-          label: "Gem. bier/dag \u2014 Huis (0,3 L)",
-          data: chartData.map(r => r.gem_huis),
-          borderColor: "#6688cc",
-          backgroundColor: "rgba(102, 136, 204, 0.1)",
-          borderWidth: 2,
-          tension: 0.25,
-          pointRadius: 2,
-          pointBackgroundColor: "#6688cc",
-          yAxisID: "y1",
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: { labels: { color: "#ffde00", font: { size: 13 } } },
-        tooltip: {
-          callbacks: {
-            title: (items) => {
-              const idx = items[0].dataIndex;
-              const r = chartData[idx];
-              return `${fmtDate(r.datum)} \u2014 ${r.bierkoning}`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          type: "category",
-          ticks: {
-            color: "#384c60",
-            maxRotation: 0,
-            autoSkip: true,
-            callback: function(val, idx) {
-              const d = chartData[idx]?.datum || "";
-              return d.slice(0,4);
-            }
-          },
-          grid: { color: "rgba(56,76,96,0.2)" }
-        },
-        y: {
-          position: "left",
-          title: { display: true, text: "Bierkoning [bier/dag]", color: "#ffde00" },
-          ticks: { color: "#ffde00" },
-          grid: { color: "rgba(56,76,96,0.2)" }
-        },
-        y1: {
-          position: "right",
-          title: { display: true, text: "Huis [0,3 L/dag]", color: "#6688cc" },
-          ticks: { color: "#6688cc" },
-          grid: { drawOnChartArea: false }
-        }
-      }
+  // === Reload data + re-render everything ===
+  async function reloadData() {
+    const { data, error } = await sb
+      .from('reigns')
+      .select('*')
+      .order('datum', { ascending: true });
+
+    if (error) {
+      showError("Fout bij ophalen data: " + error.message);
+      return;
     }
-  });
-  </script>
-</body>
-</html>
+
+    reigns = data;
+    renderHero(reigns);
+    renderTable(reigns);
+    renderChart(reigns);
+
+    document.getElementById("bk-table-loading").style.display = "none";
+    document.getElementById("bk-table").style.display = "table";
+  }
+
+  // === Admin: inline edit ===
+  function startEdit(id) {
+    const r  = reigns.find(x => x.id === id);
+    if (!r) return;
+    const tbody = document.getElementById("bk-tbody");
+    const rows  = tbody.querySelectorAll("tr");
+    rows.forEach(tr => {
+      // find the row by checking its delete button's onclick
+      if (tr.innerHTML.includes(`'${id}'`)) {
+        tr.classList.add("bk-edit-row");
+        tr.innerHTML = `
+          <td><input type="date"   id="e-datum"       value="${r.datum}"></td>
+          <td><input type="text"   id="e-bierkoning"  value="${r.bierkoning}"></td>
+          <td><input type="number" id="e-dagen"       value="${r.dagen}"></td>
+          <td><input type="text"   id="e-totaal_bk"   value="${r.totaal_bk ?? ''}"></td>
+          <td><input type="text"   id="e-gem_bk"      value="${r.gem_bk ?? ''}"></td>
+          <td><input type="text"   id="e-totaal_huis" value="${r.totaal_huis ?? ''}"></td>
+          <td><input type="text"   id="e-gem_huis"    value="${r.gem_huis ?? ''}"></td>
+          <td><input type="text"   id="e-pct"         value="${r.pct ?? ''}"></td>
+          <td>
+            <button class="bk-btn bk-btn-sm" onclick="saveEdit('${id}')">Opslaan</button>
+            <button class="bk-btn bk-btn-sm bk-btn-secondary" onclick="reloadData()">Annuleer</button>
+          </td>
+        `;
+      }
+    });
+  }
+
+  async function saveEdit(id) {
+    const payload = {
+      datum:       document.getElementById("e-datum").value,
+      bierkoning:  document.getElementById("e-bierkoning").value,
+      dagen:       parseInt(document.getElementById("e-dagen").value),
+      totaal_bk:   parseNL(document.getElementById("e-totaal_bk").value),
+      gem_bk:      parseNL(document.getElementById("e-gem_bk").value),
+      totaal_huis: parseNL(document.getElementById("e-totaal_huis").value),
+      gem_huis:    parseNL(document.getElementById("e-gem_huis").value),
+      pct:         parseNL(document.getElementById("e-pct").value),
+    };
+    const { error } = await sb.from('reigns').update(payload).eq('id', id);
+    if (error) { alert("Fout bij opslaan: " + error.message); return; }
+    await reloadData();
+  }
+
+  async function deleteReign(id) {
+    const r = reigns.find(x => x.id === id);
+    if (!r) return;
+    if (!confirm(`Verwijder reign van ${r.bierkoning} (${r.datum})?`)) return;
+    const { error } = await sb.from('reigns').delete().eq('id', id);
+    if (error) { alert("Fout bij verwijderen: " + error.message); return; }
+    await reloadData();
+  }
+
+  // === Admin: add form ===
+  document.getElementById("bk-add-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const payload = {
+      datum:       f.datum.value,
+      bierkoning:  f.bierkoning.value,
+      dagen:       parseInt(f.dagen.value),
+      totaal_bk:   parseNL(f.totaal_bk.value),
+      gem_bk:      p

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Inloggen — CLUB 9-2</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .login-wrap {
+      max-width: 440px;
+      margin: 80px auto;
+      padding: 40px;
+      background: #000524;
+      border: 1px solid #384c60;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    .login-wrap h2 {
+      margin: 0 0 10px;
+      font-size: 2em;
+      color: #ffde00;
+    }
+    .login-wrap p {
+      color: #384c60;
+      margin: 0 0 28px;
+      font-size: 1em;
+    }
+    .login-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #060f2d;
+      border: 1px solid #384c60;
+      border-radius: 6px;
+      color: #ffde00;
+      font-family: 'Tw Cen MT Condensed Extra Bold', Arial, sans-serif;
+      font-size: 1.1em;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .login-input:focus {
+      outline: none;
+      border-color: #ffde00;
+    }
+    .login-btn {
+      width: 100%;
+      background: #ffde00;
+      color: #060f2d;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Tw Cen MT Condensed Extra Bold', Arial, sans-serif;
+      font-size: 1.2em;
+      padding: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .login-btn:hover { background: #ffd700; }
+    .login-msg {
+      margin-top: 20px;
+      font-size: 1em;
+      color: #384c60;
+      min-height: 1.4em;
+    }
+    .login-msg.success { color: #5cb85c; }
+    .login-msg.error   { color: #cc4444; }
+    .login-back {
+      display: block;
+      margin-top: 28px;
+      color: #384c60;
+      font-size: 0.95em;
+      text-decoration: none;
+    }
+    .login-back:hover { color: #ffde00; }
+  </style>
+</head>
+<body>
+  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
+    <a href="index.html" style="margin-right:20px;">
+      <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
+    </a>
+    <a href="index.html#bottom">Over 9-2</a>
+    <a href="avondeten.html">Avondeten</a>
+    <a href="huidige-bewoners.html">Huidige Bewoners</a>
+    <a href="hal-van-faam.html">Hal van Faam</a>
+    <a href="bierkoningschap.html">Bierkoningschap</a>
+    <a href="contact.html">Contact</a>
+    <div class="dropdown">
+      <drop class="dropbtn">Gereedschappen</drop>
+      <div class="dropdown-content">
+        <a href="biertimer.html">Biertimer</a>
+        <a href="namenkiezer.html">Namenkiezer</a>
+        <a href="soundboard.html">Soundboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="login-wrap" id="login-box">
+      <h2>Inloggen</h2>
+      <p>Log in met je e-mailadres en wachtwoord.</p>
+      <form id="login-form">
+        <input
+          class="login-input"
+          type="email"
+          id="email-input"
+          placeholder="jouw@email.nl"
+          required
+          autocomplete="email"
+        >
+        <input
+          class="login-input"
+          type="password"
+          id="password-input"
+          placeholder="Wachtwoord"
+          required
+          autocomplete="current-password"
+        >
+        <button type="submit" class="login-btn">Inloggen</button>
+      </form>
+      <div class="login-msg" id="login-msg"></div>
+      <a href="#" id="forgot-link" class="login-back" style="margin-top:12px;">Wachtwoord vergeten?</a>
+      <a href="index.html" class="login-back">← Terug naar de homepage</a>
+    </div>
+  </main>
+
+  <script>
+  const SUPABASE_URL  = 'https://yqrmrfuvsdsckqcbmkyb.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlxcm1yZnV2c2RzY2txY2Jta3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0Mjc0NDYsImV4cCI6MjA5MjAwMzQ0Nn0.GG1R1V-2iXuEVTpbIL8wX5qjW4Qjk91oMLY4Dy-G0xw';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  const form      = document.getElementById("login-form");
+  const msgEl     = document.getElementById("login-msg");
+  const emailEl   = document.getElementById("email-input");
+  const passEl    = document.getElementById("password-input");
+
+  // Als al ingelogd, meteen doorsturen
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) window.location.href = "bierkoningschap.html";
+  });
+
+  // Inloggen met email + wachtwoord
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msgEl.textContent = "Bezig...";
+    msgEl.className = "login-msg";
+
+    const { error } = await sb.auth.signInWithPassword({
+      email:    emailEl.value.trim(),
+      password: passEl.value,
+    });
+
+    if (error) {
+      msgEl.textContent = "Fout: " + (error.message === "Invalid login credentials"
+        ? "Onbekend e-mailadres of verkeerd wachtwoord."
+        : error.message);
+      msgEl.className = "login-msg error";
+    } else {
+      msgEl.textContent = "Ingelogd! Je wordt doorgestuurd...";
+      msgEl.className = "login-msg success";
+      setTimeout(() => { window.location.href = "bierkoningschap.html"; }, 800);
+    }
+  });
+
+  // Wachtwoord vergeten
+  document.getElementById("forgot-link").addEventListener("click", async (e) => {
+    e.preventDefault();
+    const email = emailEl.value.trim();
+    if (!email) {
+      msgEl.textContent = "Vul eerst je e-mailadres in.";
+      msgEl.className = "login-msg error";
+      return;
+    }
+    msgEl.textContent = "Bezig...";
+    msgEl.className = "login-msg";
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/login.html",
+    });
+    if (error) {
+      msgEl.textContent = "Fout: " + error.message;
+      msgEl.className = "login-msg error";
+    } else {
+      msgEl.textContent = "Check je inbox voor een wachtwoord-reset link.";
+      msgEl.className = "login-msg success";
+    }
+  });
+  </script>
+</body>
+</html>

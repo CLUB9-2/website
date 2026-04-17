@@ -30,14 +30,15 @@
 <body>
   <audio id="timer-sound" src="sounds/biertjes.mp3" preload="auto"></audio>
 
-  <nav style="display:flex; justify-content:center; align-items:center; gap:20px; padding:10px 20px;">
+  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
   <!-- Logo on the left, slightly separated from the other buttons -->
-  <a href="index.html" style="margin-right:40px;">
+  <a href="index.html" style="margin-right:20px;">
     <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
   </a>
 
   <!-- Navigation links -->
   <a href="index.html#bottom">Over 9-2</a>
+  <a href="avondeten.html">Avondeten</a>
   <a href="huidige-bewoners.html">Huidige Bewoners</a>
   <a href="hal-van-faam.html">Hal van Faam</a>
   <a href="bierkoningschap.html">Bierkoningschap</a>
@@ -52,6 +53,7 @@
       <a href="soundboard.html">Soundboard</a>
     </div>
   </div>
+  <a href="login.html" style="color:#384c60; text-decoration:none;">Inloggen</a>
 </nav>
 
   <main style="text-align: center;">
@@ -117,14 +119,3 @@
       }
 
       // only warn if timer is running
-      window.addEventListener("beforeunload", function (e) {
-        if (timerActive) {
-          e.preventDefault();
-          e.returnValue = "";
-        }
-      });
-
-    </script>
-  </main>
-</body>
-</html>

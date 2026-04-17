@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Avondeten — CLUB 9-2</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .av-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 20px 40px 60px;
+    }
+    .av-nav-week {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin: 24px 0 16px;
+    }
+    .av-week-label {
+      font-size: 1.4em;
+      color: #ffde00;
+      min-width: 240px;
+      text-align: center;
+    }
+    .av-mode-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      font-size: 0.95em;
+      color: #384c60;
+    }
+    .av-mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #000524;
+      border: 1px solid #384c60;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.9em;
+      color: #ffde00;
+    }
+    .av-mode-badge.uitschrijf { border-color: #6688cc; color: #6688cc; }
+    .av-mode-badge.inschrijf  { border-color: #ffde00; color: #ffde00; }
+    .av-mode-toggle {
+      background: none;
+      border: 1px dashed #384c60;
+      border-radius: 6px;
+      color: #384c60;
+      font-family: inherit;
+      font-size: 0.85em;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin: 0;
+      box-shadow: none;
+      transform: none;
+    }
+    .av-mode-toggle:hover {
+      border-color: #ffde00;
+      color: #ffde00;
+      background: none;
+      transform: none;
+      box-shadow: none;
+    }
+    .av-btn {
+      background: #ffde00;
+      color: #060f2d;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-family: inherit;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin: 0;
+      box-shadow: none;
+    }
+    .av-btn:hover { background: #ffd700; transform: none; box-shadow: none; }
+    .av-btn-sm    { padding: 4px 12px; font-size: 0.88em; }
+    .av-btn-secondary { background: #384c60; color: #ffde00; }
+    .av-btn-secondary:hover { background: #4a6080; }
+    .av-btn-danger { background: #8b1a1a; color: #ffde00; }
+    .av-btn-danger:hover { background: #aa2222; }
+
+    .av-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+    }
+    .av-day {
+      background: #000524;
+      border: 1px solid #1a2547;
+      border-radius: 8px;
+      padding: 14px 12px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      font-size: 0.92em;
+    }
+    .av-day.av-today { border-color: #ffde00; }
+    .av-day-name {
+      font-size: 0.82em;
+      color: #384c60;
+      letter-spacing: 0.08em;
+      margin-bottom: 2px;
+    }
+    .av-day-date {
+      font-size: 1.15em;
+      color: #ffde00;
+      margin-bottom: 10px;
+    }
+    .av-crew {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 8px;
+    }
+    .av-crew-row {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+    }
+    .av-crew-icon { font-size: 0.9em; }
+    .av-crew-label { font-size: 0.75em; color: #384c60; }
+    .av-crew-name  { color: #ffde00; }
+    .av-gerecht {
+      font-size: 0.82em;
+      color: #384c60;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+    .av-signups-section { flex: 1; }
+    .av-signups-label {
+      font-size: 0.75em;
+      color: #384c60;
+      margin-bottom: 4px;
+      letter-spacing: 0.05em;
+    }
+    .av-signup-chip {
+      display: inline-block;
+      background: #060f2d;
+      border: 1px solid #1a2547;
+      border-radius: 4px;
+      padding: 1px 7px;
+      margin: 2px;
+      color: #ffde00;
+      font-size: 0.82em;
+    }
+    .av-signup-chip.uitschrijf { border-color: #4a2020; color: #cc7777; }
+    .av-no-meal {
+      font-size: 0.82em;
+      color: #1a2547;
+      font-style: italic;
+      flex: 1;
+    }
+    .av-admin-day {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #1a2547;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .av-form-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: 4px;
+    }
+    .av-form-inline input {
+      background: #060f2d;
+      border: 1px solid #384c60;
+      border-radius: 4px;
+      color: #ffde00;
+      font-family: inherit;
+      font-size: 0.85em;
+      padding: 5px 7px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .av-form-inline input:focus { outline: none; border-color: #ffde00; }
+    .av-form-inline label {
+      font-size: 0.75em;
+      color: #384c60;
+    }
+    .av-loading {
+      text-align: center;
+      color: #384c60;
+      padding: 40px;
+      font-size: 1.2em;
+    }
+    @media (max-width: 900px) {
+      .av-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .av-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
+    <a href="index.html" style="margin-right:20px;">
+      <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
+    </a>
+    <a href="index.html#bottom">Over 9-2</a>
+    <a href="avondeten.html">Avondeten</a>
+    <a href="huidige-bewoners.html">Huidige Bewoners</a>
+    <a href="hal-van-faam.html">Hal van Faam</a>
+    <a href="bierkoningschap.html">Bierkoningschap</a>
+    <a href="contact.html">Contact</a>
+    <div class="dropdown">
+      <drop class="dropbtn">Gereedschappen</drop>
+      <div class="dropdown-content">
+        <a href="biertimer.html">Biertimer</a>
+        <a href="namenkiezer.html">Namenkiezer</a>
+        <a href="soundboard.html">Soundboard</a>
+      </div>
+    </div>
+    <a href="login.html" style="color:#384c60; text-decoration:none;" id="nav-login-link">Inloggen</a>
+  </nav>
+
+  <main>
+    <div class="av-wrap">
+      <h2 style="text-align:center; margin-top:20px;">Avondeten</h2>
+
+      <!-- Week navigation -->
+      <div class="av-nav-week">
+        <button class="av-btn" id="btn-prev">&#x2190;</button>
+        <div class="av-week-label" id="week-label"></div>
+        <button class="av-btn" id="btn-next">&#x2192;</button>
+      </div>
+
+      <!-- Mode indicator (+ toggle for admin) -->
+      <div class="av-mode-bar" id="mode-bar">
+        <span id="mode-badge" class="av-mode-badge"></span>
+        <button class="av-mode-toggle" id="btn-mode-toggle" style="display:none;">Wissel modus</button>
+        <span id="mode-hint" style="font-size:0.85em;"></span>
+      </div>
+
+      <div id="av-loading" class="av-loading">Laden...</div>
+      <div class="av-grid" id="av-grid" style="display:none;"></div>
+    </div>
+  </main>
+
+  <script>
+  const SUPABASE_URL  = 'https://yqrmrfuvsdsckqcbmkyb.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlxcm1yZnV2c2RzY2txY2Jta3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0Mjc0NDYsImV4cCI6MjA5MjAwMzQ0Nn0.GG1R1V-2iXuEVTpbIL8wX5qjW4Qjk91oMLY4Dy-G0xw';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  // ===  Helpers ===
+  const DAY_NAMES   = ['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag','Zondag'];
+  const MONTH_NAMES = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+
+  function toIso(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function fmtShort(d) {
+    return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`;
+  }
+  function addDays(d, n) {
+    const r = new Date(d); r.setDate(r.getDate() + n); return r;
+  }
+  function weekStart(d) {
+    const day = d.getDay();
+    return addDays(d, day === 0 ? -6 : 1 - day);
+  }
+
+  // === State ===
+  let currentMonday = weekStart(new Date());
+  let isAdmin       = false;
+  let session       = null;
+  // weekMode = default mode for new meals created this week;
+  // stored in localStorage so it persists across sessions on same device
+  let weekMode = localStorage.getItem('av_weekMode') || 'uitschrijf';
+
+  // === Mode UI ===
+  function updateModeBar() {
+    const badge = document.getElementById('mode-badge');
+    const hint  = document.getElementById('mode-hint');
+    if (weekMode === 'uitschrijf') {
+      badge.textContent = '📋 Uitschrijflijst';
+      badge.className   = 'av-mode-badge uitschrijf';
+      hint.textContent  = 'Iedereen eet mee — meld je af als je er niet bij bent.';
+    } else {
+      badge.textContent = '✋ Inschrijflijst';
+      badge.className   = 'av-mode-badge inschrijf';
+      hint.textContent  = 'Schrijf je in als je wil eten.';
+    }
+    document.getElementById('btn-mode-toggle').style.display = isAdmin ? 'inline-block' : 'none';
+  }
+
+  document.getElementById('btn-mode-toggle').addEventListener('click', () => {
+    weekMode = weekMode === 'uitschrijf' ? 'inschrijf' : 'uitschrijf';
+    localStorage.setItem('av_weekMode', weekMode);
+    updateModeBar();
+    renderWeek();
+  });
+
+  // === Nav ===
+  document.getElementById('btn-prev').addEventListener('click', () => {
+    currentMonday = addDays(currentMonday, -7);
+    renderWeek();
+  });
+  document.getElementById('btn-next').addEventListener('click', () => {
+    currentMonday = addDays(currentMonday, 7);
+    renderWeek();
+  });
+
+  function updateWeekLabel() {
+    const sun = addDays(currentMonday, 6);
+    document.getElementById('week-label').textContent =
+      `${fmtShort(currentMonday)} – ${fmtShort(sun)} ${sun.getFullYear()}`;
+  }
+
+  // === Render week ===
+  async function renderWeek() {
+    updateWeekLabel();
+    updateModeBar();
+
+    const grid    = document.getElementById('av-grid');
+    const loading = document.getElementById('av-loading');
+    grid.style.display = 'none';
+    loading.style.display = 'block';
+    loading.textContent = 'Laden...';
+
+    const weekDates = Array.from({length: 7}, (_, i) => addDays(currentMonday, i));
+    const isoStart  = toIso(weekDates[0]);
+    const isoEnd    = toIso(weekDates[6]);
+
+    const { data: meals, error: mErr } = await sb
+      .from('meals').select('*').gte('datum', isoStart).lte('datum', isoEnd);
+    if (mErr) { loading.textContent = 'Fout: ' + mErr.message; return; }
+
+    const mealIds = meals.map(m => m.id);
+    let signups = [];
+    if (mealIds.length > 0) {
+      const { data: sData } = await sb.from('signups').select('*').in('meal_id', mealIds);
+      if (sData) signups = sData;
+    }
+
+    const mealByDate    = Object.fromEntries(meals.map(m => [m.datum, m]));
+    const signupsByMeal = {};
+    signups.forEach(s => {
+      (signupsByMeal[s.meal_id] = signupsByMeal[s.meal_id] || []).push(s);
+    });
+
+    const today = toIso(new Date());
+    grid.innerHTML = '';
+
+    weekDates.forEach((date, idx) => {
+      const iso  = toIso(date);
+      const meal = mealByDate[iso] || null;
+      const sups = meal ? (signupsByMeal[meal.id] || []) : [];
+      const mode = meal ? meal.mode : weekMode;
+
+      const div = document.createElement('div');
+      div.className = 'av-day' + (iso === today ? ' av-today' : '');
+
+      // Header
+      div.innerHTML = `
+        <div class="av-day-name">${DAY_NAMES[idx].toUpperCase()}</div>
+        <div class="av-day-date">${fmtShort(date)}</div>
+      `;
+
+      if (meal) {
+        // Crew (koks + afwasser)
+        const crew = document.createElement('div');
+        crew.className = 'av-crew';
+
+        const kok1Row = document.createElement('div');
+        kok1Row.className = 'av-crew-row';
+        kok1Row.innerHTML = `<span class="av-crew-icon">👨‍🍳</span><span class="av-crew-label">kok</span><span class="av-crew-name">${meal.kok1}</span>`;
+        crew.appendChild(kok1Row);
+
+        if (meal.kok2) {
+          const kok2Row = document.createElement('div');
+          kok2Row.className = 'av-crew-row';
+          kok2Row.innerHTML = `<span class="av-crew-icon">👨‍🍳</span><span class="av-crew-label">kok</span><span class="av-crew-name">${meal.kok2}</span>`;
+          crew.appendChild(kok2Row);
+        }
+
+        if (meal.afwasser) {
+          const afwRow = document.createElement('div');
+          afwRow.className = 'av-crew-row';
+          afwRow.innerHTML = `<span class="av-crew-icon">🧼</span><span class="av-crew-label">afwas</span><span class="av-crew-name">${meal.afwasser}</span>`;
+          crew.appendChild(afwRow);
+        }
+
+        div.appendChild(crew);
+
+        if (meal.gerecht) {
+          const gEl = document.createElement('div');
+          gEl.className = 'av-gerecht';
+          gEl.textContent = meal.gerecht;
+          div.appendChild(gEl);
+        }
+
+        // Signups
+        const supsSection = document.createElement('div');
+        supsSection.className = 'av-signups-section';
+
+        if (sups.length > 0) {
+          const label = document.createElement('div');
+          label.className = 'av-signups-label';
+          label.textContent = mode === 'uitschrijf' ? 'AFGEMELD' : 'AANGEMELD';
+          supsSection.appendChild(label);
+          sups.forEach(s => {
+            const chip = document.createElement('span');
+            chip.className = 'av-signup-chip' + (mode === 'uitschrijf' ? ' uitschrijf' : '');
+            chip.title = s.opmerking || '';
+            chip.textContent = s.naam + (s.opmerking ? ' *' : '');
+            supsSection.appendChild(chip);
+          });
+        } else {
+          const empty = document.createElement('div');
+          empty.style.cssText = 'font-size:0.78em; color:#1a2547;';
+          empty.textContent = mode === 'uitschrijf' ? 'Niemand afgemeld' : 'Nog niemand aangemeld';
+          supsSection.appendChild(empty);
+        }
+        div.appendChild(supsSection);
+
+      } else {
+        const noMeal = document.createElement('div');
+        noMeal.className = 'av-no-meal';
+        noMeal.textContent = 'Nog geen kok';
+        div.appendChild(noMeal);
+      }
+
+      // Admin actions
+      if (isAdmin) {
+        const adminDiv = document.createElement('div');
+        adminDiv.className = 'av-admin-day';
+
+        if (!meal) {
+          // Add meal form button
+          const addBtn = document.createElement('button');
+          addBtn.className = 'av-btn av-btn-sm';
+          addBtn.textContent = '+ Maaltijd';
+          addBtn.onclick = () => showMealForm(iso, adminDiv, null);
+          adminDiv.appendChild(addBtn);
+        } else {
+          // Edit / delete meal
+          const editBtn = document.createElement('button');
+          editBtn.className = 'av-btn av-btn-sm av-btn-secondary';
+          editBtn.textContent = 'Bewerk';
+          editBtn.onclick = () => showMealForm(iso, adminDiv, meal);
+          adminDiv.appendChild(editBtn);
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'av-btn av-btn-sm av-btn-danger';
+          delBtn.textContent = '🗑';
+          delBtn.onclick = () => deleteMeal(meal.id);
+          adminDiv.appendChild(delBtn);
+
+          // Sign up / opt out button
+          const mySignup = sups.find(s => s.naam === myName());
+          const signupBtn = document.createElement('button');
+          const mode = meal.mode;
+          if (mySignup) {
+            signupBtn.className = 'av-btn av-btn-sm av-btn-danger';
+            signupBtn.textContent = mode === 'uitschrijf' ? 'Toch erbij' : 'Afmelden';
+            signupBtn.onclick = () => deleteSignup(mySignup.id);
+          } else {
+            signupBtn.className = 'av-btn av-btn-sm';
+            signupBtn.textContent = mode === 'uitschrijf' ? 'Niet aanwezig' : 'Aanmelden';
+            signupBtn.onclick = () => showSignupForm(meal.id, adminDiv);
+          }
+          adminDiv.appendChild(signupBtn);
+        }
+
+        div.appendChild(adminDiv);
+      }
+
+      grid.appendChild(div);
+    });
+
+    loading.style.display = 'none';
+    grid.style.display = 'grid';
+  }
+
+  // === Helpers ===
+  function myName() {
+    // Use the part before @ as default name suggestion
+    return session?.user?.email?.split('@')[0] || '';
+  }
+
+  // === Meal form (add + edit) ===
+  function showMealForm(datum, container, existing) {
+    // Remove existing form if any
+    container.querySelectorAll('.av-form-inline').forEach(el => el.remove());
+
+    const form = document.createElement('div');
+    form.className = 'av-form-inline';
+    const modeOptions = `
+      <option value="uitschrijf" ${(!existing || existing.mode === 'uitschrijf') ? 'selected' : ''}>Uitschrijflijst</option>
+      <option value="inschrijf"  ${(existing?.mode === 'inschrijf') ? 'selected' : ''}>Inschrijflijst</option>
+    `;
+    form.innerHTML = `
+      <label>Kok 1 *<input type="text" id="mf-kok1"      value="${existing?.kok1 || ''}"      placeholder="Naam kok 1" required></label>
+      <label>Kok 2  <input type="text" id="mf-kok2"      value="${existing?.kok2 || ''}"      placeholder="Naam kok 2 (optioneel)"></label>
+      <label>Afwasser<input type="text" id="mf-afwasser"  value="${existing?.afwasser || ''}"  placeholder="Naam afwasser (optioneel)"></label>
+      <label>Gerecht <input type="text" id="mf-gerecht"   value="${existing?.gerecht || ''}"   placeholder="Wat wordt er gekookt?"></label>
+      <label>Modus
+        <select id="mf-mode" style="background:#060f2d;border:1px solid #384c60;border-radius:4px;color:#ffde00;font-family:inherit;font-size:0.85em;padding:5px 7px;">
+          ${modeOptions}
+        </select>
+      </label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="av-btn av-btn-sm" onclick="saveMealForm('${datum}', ${existing ? `'${existing.id}'` : 'null'})">Opslaan</button>
+        <button class="av-btn av-btn-sm av-btn-secondary" onclick="renderWeek()">Annuleer</button>
+      </div>
+    `;
+    container.appendChild(form);
+  }
+
+  async function saveMealForm(datum, existingId) {
+    const kok1     = document.getElementById('mf-kok1')?.value.trim();
+    const kok2     = document.getElementById('mf-kok2')?.value.trim() || null;
+    const afwasser = document.getElementById('mf-afwasser')?.value.trim() || null;
+    const gerecht  = document.getElementById('mf-gerecht')?.value.trim() || null;
+    const mode     = document.getElementById('mf-mode')?.value || weekMode;
+    if (!kok1) return;
+
+    const payload = { datum, kok1, kok2, afwasser, gerecht, mode };
+    const { error } = existingId
+      ? await sb.from('meals').update(payload).eq('id', existingId)
+      : await sb.from('meals').insert(payload);
+    if (error) { alert('Fout: ' + error.message); return; }
+    renderWeek();
+  }
+
+  async function deleteMeal(mealId) {
+    if (!confirm('Maaltijd verwijderen? Alle aanmeldingen worden ook verwijderd.')) return;
+    const { error } = await sb.from('meals').delete().eq('id', mealId);
+    if (error) { alert('Fout: ' + error.message); return; }
+    renderWeek();
+  }
+
+  // === Signup form ===
+  function showSignupForm(mealId, container) {
+    if (container.querySelector('.av-signup-form')) {
+      container.querySelector('.av-signup-form').remove();
+      return;
+    }
+    const form = document.createElement('div');
+    form.className = 'av-form-inline av-signup-form';
+    form.innerHTML = `
+      <label>Naam<input type="text" id="sf-naam-${mealId}" value="${myName()}" placeholder="Jouw naam" required></label>
+      <label>Opmerking<input type="text" id="sf-opm-${mealId}" placeholder="bijv. ben er om 19:30"></label>
+      <button class="av-btn av-btn-sm" onclick="addSignup('${mealId}')">Bevestigen</button>
+    `;
+    container.appendChild(form);
+  }
+
+  async function addSignup(mealId) {
+    const naam      = document.getElementById(`sf-naam-${mealId}`)?.value.trim();
+    const opmerking = document.getElementById(`sf-opm-${mealId}`)?.value.trim() || null;
+    if (!naam) return;
+    const { error } = await sb.from('signups').insert({ meal_id: mealId, naam, opmerking });
+    if (error) {
+      alert(error.code === '23505' ? 'Al aangemeld onder deze naam.' : 'Fout: ' + error.message);
+      return;
+    }
+    renderWeek();
+  }
+
+  async function deleteSignup(signupId) {
+    const { error } = await sb.from('signups').delete().eq('id', signupId);
+    if (error) { alert('Fout: ' + error.message); return; }
+    renderWeek();
+  }
+
+  // === Init ===
+  async function init() {
+    const { data: { session: s } } = await sb.auth.getSession();
+    session = s;
+    isAdmin = !!s;
+
+    const loginLink = document.getElementById('nav-login-link');
+    if (isAdmin) {
+      loginLink.textContent = 'Uitloggen';
+      loginLink.onclick = async (e) => {
+        e.preventDefault();
+        await sb.auth.signOut();
+        location.reload();
+      };
+    }
+
+    await renderWeek();
+  }
+
+  init();
+  </script>
+</body>
+</html>

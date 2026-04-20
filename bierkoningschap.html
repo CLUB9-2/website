@@ -7,7 +7,7 @@
   <meta property="og:title" content="CLUB 9-2 — Bierkoningschap">
   <meta property="og:description" content="63 regeerperioden sinds 2010. Zie wie de meeste bier dronk per dag.">
   <link rel="icon" href="img/logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260420b">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
@@ -566,7 +566,9 @@
   const parseNL = (s) => s == null || s === "" ? null : parseFloat(String(s).replace(",", "."));
 
   let reigns = [];
-  let sortState = { key: null, dir: 1 };
+  // Default sort: newest end-date first. The chart/hero still rely on reigns
+  // being raw DB order (ASC from Supabase) — applySort operates on a shallow copy.
+  let sortState = { key: "datum", type: "date", dir: -1 };
   let chartInstance = null;
   let isAdmin = false;
 
@@ -609,7 +611,7 @@
         <td>${r.gap ? "&mdash;" : fmtNL(r.gem_bk, 2)}</td>
         <td>${r.gap ? "&mdash;" : fmtInt(r.totaal_huis)}</td>
         <td>${r.gap ? "&mdash;" : fmtNL(r.gem_huis, 1)}</td>
-        <td>${r.gap ? "&mdash;" : fmtPct(r.pct)}</td>
+              <td>${r.gap ? "&mdash;" : fmtPct(r.pct)}</td>
         ${isAdmin ? `<td>
           <button class="bk-btn bk-btn-sm bk-btn-secondary" onclick="startEdit('${r.id}')">Bewerk</button>
           <button class="bk-btn bk-btn-sm bk-btn-danger" onclick="deleteReign('${r.id}')">&#x1F5D1;</button>
@@ -705,11 +707,23 @@
     if (!sortState.key) return rows;
     const key  = sortState.key;
     const type = sortState.type;
-    return [...rows].sort((a,b) => {
+    return [...rows].sort((a, b) => {
       let av = a[key], bv = b[key];
-      if (av == null) av = type === "str" ? "" : -Infinity;
-      if (bv == null) bv = type === "str" ? "" : -Infinity;
-      if (type === "str") return av.localeCompare(bv) * sortState.dir;
+      if (type === "str") {
+        if (av == null) av = "";
+        if (bv == null) bv = "";
+        return av.localeCompare(bv) * sortState.dir;
+      }
+      if (type === "date") {
+        // ISO YYYY-MM-DD strings -> lexicographic compare == chronological.
+        if (av == null) av = "";
+        if (bv == null) bv = "";
+        if (av === bv) return 0;
+        return (av < bv ? -1 : 1) * sortState.dir;
+      }
+      // Numeric
+      if (av == null) av = -Infinity;
+      if (bv == null) bv = -Infinity;
       return (av - bv) * sortState.dir;
     });
   }
@@ -782,7 +796,6 @@
     const tbody = document.getElementById("bk-tbody");
     const rows  = tbody.querySelectorAll("tr");
     rows.forEach(tr => {
-      // find the row by checking its delete button's onclick
       if (tr.innerHTML.includes(`'${id}'`)) {
         tr.classList.add("bk-edit-row");
         tr.innerHTML = `
@@ -837,12 +850,9 @@
     );
     if (!ok) return;
 
-    // Snapshot the row BEFORE delete so we can undo (client-side only: a new id
-    // will be generated on re-insert, so foreign-key references — if any —
-    // would not be restored. Fine for this site.)
     const snapshot = { ...r };
-    delete snapshot.id;        // let the DB allocate a new id on re-insert
-    delete snapshot.created_at; // also let DB default recreate it, if present
+    delete snapshot.id;
+    delete snapshot.created_at;
 
     const { error } = await sb.from('reigns').delete().eq('id', id);
     if (error) {
@@ -851,7 +861,6 @@
     }
     await reloadData();
 
-    // Offer 5-second undo
     showToast(`Reign van ${r.bierkoning} verwijderd.`, {
       type: "success",
       duration: 5000,
@@ -909,7 +918,6 @@
   });
 
   // === Auth / init ===
-  // nav-login-link (Inloggen/Uitloggen) is handled globally by auth.js.
   function applyAdminUI() {
     const adminBox  = document.getElementById("bk-admin");
     const loginHint = document.getElementById("bk-login-hint");
@@ -938,11 +946,9 @@
     }
   }
 
-  // React to auth changes (sign-out in another tab, etc.)
   sb.auth.onAuthStateChange((_ev, session) => {
     isAdmin = !!session;
     applyAdminUI();
-    // Rerender so admin action buttons in the table show/hide.
     if (reigns.length) renderTable(applySort(reigns));
   });
 

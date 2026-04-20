@@ -113,6 +113,18 @@
       user-select: none;
     }
     table.bk-table thead th:hover { color: #fff; }
+    table.bk-table thead th .bk-arrow {
+      display: inline-block;
+      margin-left: 4px;
+      color: #384c60;
+      font-size: 0.85em;
+      letter-spacing: -2px;
+      transition: color 0.15s;
+    }
+    table.bk-table thead th .bk-arrow.bk-arrow-active {
+      color: #ffde00;
+      letter-spacing: 0;
+    }
     table.bk-table tbody tr:hover { background: #0a1740; }
     table.bk-table tbody tr.bk-gap td {
       color: #384c60;
@@ -415,14 +427,14 @@
       <table class="bk-table" id="bk-table" style="display:none;">
         <thead>
           <tr>
-            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="datum"       data-type="date">Einddatum &#x25B2;&#x25BC;</th>
-            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="bierkoning"  data-type="str">Bierkoning &#x25B2;&#x25BC;</th>
-            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="dagen"       data-type="num">Dagen &#x25B2;&#x25BC;</th>
-            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="totaal_bk"   data-type="num">Totaal BK &#x25B2;&#x25BC;</th>
-            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="gem_bk"      data-type="num">Gem. BK &#x25B2;&#x25BC;</th>
-            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="totaal_huis" data-type="num">Totaal huis &#x25B2;&#x25BC;</th>
-            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="gem_huis"    data-type="num">Gem. huis &#x25B2;&#x25BC;</th>
-            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="pct"         data-type="num">% v. huis &#x25B2;&#x25BC;</th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="datum"       data-type="date">Einddatum<span class="bk-arrow">&#x25B2;&#x25BC;</span></th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="bierkoning"  data-type="str">Bierkoning<span class="bk-arrow">&#x25B2;&#x25BC;</span></th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="dagen"       data-type="num">Dagen<span class="bk-arrow">&#x25B2;&#x25BC;</span></th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="totaal_bk"   data-type="num">Totaal BK<span class="bk-arrow">&#x25B2;&#x25BC;</span></th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="gem_bk"      data-type="num">Gem. BK<span class="bk-arrow">&#x25B2;&#x25BC;</span></th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="totaal_huis" data-type="num">Totaal huis<span class="bk-arrow">&#x25B2;&#x25BC;</span></th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="gem_huis"    data-type="num">Gem. huis<span class="bk-arrow">&#x25B2;&#x25BC;</span></th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="pct"         data-type="num">% v. huis<span class="bk-arrow">&#x25B2;&#x25BC;</span></th>
             <th scope="col" id="bk-actions-col" style="display:none;"></th>
           </tr>
         </thead>
@@ -689,27 +701,50 @@
   }
 
   // === Sort ===
-  function doSort(th) {
-    const key  = th.dataset.key;
-    const type = th.dataset.type;
-    if (sortState.key === key) sortState.dir *= -1;
-    else { sortState.key = key; sortState.dir = (type === "str" ? 1 : -1); }
-    const sorted = [...reigns].sort((a,b) => {
+  function applySort(rows) {
+    if (!sortState.key) return rows;
+    const key  = sortState.key;
+    const type = sortState.type;
+    return [...rows].sort((a,b) => {
       let av = a[key], bv = b[key];
       if (av == null) av = type === "str" ? "" : -Infinity;
       if (bv == null) bv = type === "str" ? "" : -Infinity;
       if (type === "str") return av.localeCompare(bv) * sortState.dir;
       return (av - bv) * sortState.dir;
     });
-    // Update aria-sort on all headers
+  }
+
+  function updateSortIndicators() {
     document.querySelectorAll("#bk-table thead th[data-key]").forEach(h => {
+      const arrow = h.querySelector(".bk-arrow");
       if (h.dataset.key === sortState.key) {
         h.setAttribute("aria-sort", sortState.dir === 1 ? "ascending" : "descending");
+        if (arrow) {
+          arrow.textContent = sortState.dir === 1 ? "\u25B2" : "\u25BC";
+          arrow.classList.add("bk-arrow-active");
+        }
       } else {
         h.setAttribute("aria-sort", "none");
+        if (arrow) {
+          arrow.textContent = "\u25B2\u25BC";
+          arrow.classList.remove("bk-arrow-active");
+        }
       }
     });
-    renderTable(sorted);
+  }
+
+  function doSort(th) {
+    const key  = th.dataset.key;
+    const type = th.dataset.type;
+    if (sortState.key === key) {
+      sortState.dir *= -1;
+    } else {
+      sortState.key = key;
+      sortState.type = type;
+      sortState.dir = (type === "str" ? 1 : -1);
+    }
+    updateSortIndicators();
+    renderTable(applySort(reigns));
   }
   document.querySelectorAll("#bk-table thead th[data-key]").forEach(th => {
     th.addEventListener("click", () => doSort(th));
@@ -732,7 +767,8 @@
 
     reigns = data;
     renderHero(reigns);
-    renderTable(reigns);
+    renderTable(applySort(reigns));
+    updateSortIndicators();
     renderChart(reigns);
 
     document.getElementById("bk-table-loading").style.display = "none";
@@ -907,7 +943,7 @@
     isAdmin = !!session;
     applyAdminUI();
     // Rerender so admin action buttons in the table show/hide.
-    if (reigns.length) renderTable(reigns);
+    if (reigns.length) renderTable(applySort(reigns));
   });
 
   init();

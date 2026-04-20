@@ -155,7 +155,11 @@ main { font-size: 1.125rem; }
   outline: none;
 }
 
-.site-nav__utility { margin-left: auto; }
+.site-nav__utility {
+  margin-left: 16px;
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+}
 
 /* Mobile hamburger toggle */
 .site-nav__toggle {
@@ -447,7 +451,11 @@ button:focus-visible {
     padding: 12px 20px;
   }
 
-  .site-nav__utility { margin-left: 0; }
+  .site-nav__utility {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+  }
 
   /* On mobile, dropdown shows inline rather than floating */
   .dropdown-content {

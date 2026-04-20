@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Inloggen — CLUB 9-2</title>
+  <meta name="description" content="Log in als admin om CLUB 9-2 data te beheren.">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
   <style>
     .login-wrap {
       max-width: 440px;
@@ -74,27 +78,9 @@
   </style>
 </head>
 <body>
-  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
-    <a href="index.html" style="margin-right:20px;">
-      <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
-    </a>
-    <a href="index.html#bottom">Over 9-2</a>
-    <a href="avondeten.html">Avondeten</a>
-    <a href="huidige-bewoners.html">Huidige Bewoners</a>
-    <a href="hal-van-faam.html">Hal van Faam</a>
-    <a href="bierkoningschap.html">Bierkoningschap</a>
-    <a href="contact.html">Contact</a>
-    <div class="dropdown">
-      <drop class="dropbtn">Gereedschappen</drop>
-      <div class="dropdown-content">
-        <a href="biertimer.html">Biertimer</a>
-        <a href="namenkiezer.html">Namenkiezer</a>
-        <a href="soundboard.html">Soundboard</a>
-      </div>
-    </div>
-  </nav>
+  <div id="nav-placeholder"></div>
 
-  <main>
+  <main id="main">
     <div class="login-wrap" id="login-box">
       <h2>Inloggen</h2>
       <p>Log in met je e-mailadres en wachtwoord.</p>
@@ -124,10 +110,8 @@
   </main>
 
   <script>
-  const SUPABASE_URL  = 'https://yqrmrfuvsdsckqcbmkyb.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlxcm1yZnV2c2RzY2txY2Jta3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0Mjc0NDYsImV4cCI6MjA5MjAwMzQ0Nn0.GG1R1V-2iXuEVTpbIL8wX5qjW4Qjk91oMLY4Dy-G0xw';
-  const { createClient } = supabase;
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+  // Supabase client initialized globally by supabase-client.js as window.sb
+  const sb = window.sb;
 
   const form      = document.getElementById("login-form");
   const msgEl     = document.getElementById("login-msg");
@@ -185,5 +169,8 @@
     }
   });
   </script>
+
+  <script src="auth.js"></script>
+  <script src="nav-loader.js"></script>
 </body>
 </html>

@@ -2,99 +2,85 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Huidige Bewoners</title>
+  <title>Huidige Bewoners — CLUB 9-2</title>
+  <meta name="description" content="De huidige bewoners van CLUB 9-2.">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
 </head>
 <body>
-  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
-    <!-- Logo on the left, slightly separated from the other buttons -->
-    <a href="index.html" style="margin-right:20px;">
-      <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
-    </a>
+  <div id="nav-placeholder"></div>
 
-    <!-- Navigation links -->
-    <a href="index.html#bottom">Over 9-2</a>
-    <a href="avondeten.html">Avondeten</a>
-    <a href="huidige-bewoners.html">Huidige Bewoners</a>
-    <a href="hal-van-faam.html">Hal van Faam</a>
-    <a href="bierkoningschap.html">Bierkoningschap</a>
-    <a href="contact.html">Contact</a>
-
-    <!-- Dropdown -->
-    <div class="dropdown">
-      <drop class="dropbtn">Gereedschappen</drop>
-      <div class="dropdown-content">
-        <a href="biertimer.html">Biertimer</a>
-        <a href="namenkiezer.html">Namenkiezer</a>
-        <a href="soundboard.html">Soundboard</a>
-      </div>
-    </div>
-    <a href="login.html" style="color:#384c60; text-decoration:none;">Inloggen</a>
-  </nav>
-
-  <main>
+  <main id="main">
     <h3 style="text-align:center;">Huidige Bewoners der CLUB 9-2</h3>
     
     <div class="grid-bewoners">
       <!-- One card per bewoner -->
       <div class="nestor-card">
-        <img src="img/Koert.JPG" alt="Koert">
+        <img src="img/Koert.JPG" alt="Portretfoto van Koert v.d. Plaat, nestor sinds 2019">
         <p>Koert v.d. Plaat</p>
         <p>2019 - Heden</p>
       </div>
 
       <div class="bewoner-card">
-        <img src="img/Dolv.JPG" alt="Dolv">
+        <img src="img/Dolv.JPG" alt="Portretfoto van Dolv Willemsen, bewoner sinds 2020">
         <p>Dolv Willemsen</p>
         <p>2020 - Heden</p>
       </div>
 
       <div class="bewoner-card">
-        <img src="img/Enzo.JPG" alt="Enzo">
+        <img src="img/Enzo.JPG" alt="Portretfoto van Enzo Mooij, bewoner sinds 2021">
         <p>Enzo Mooij</p>
         <p>2021 - Heden</p>
       </div>
 
       <div class="bewoner-card">
-        <img src="img/Huub.JPG" alt="Huub">
+        <img src="img/Huub.JPG" alt="Portretfoto van Huub Houben, bewoner sinds 2021">
         <p>Huub Houben</p>
         <p>2021 - Heden</p>
       </div>
 
       <div class="bewoner-card">
-        <img src="img/Kees.JPG" alt="Kees">
+        <img src="img/Kees.JPG" alt="Portretfoto van Kees Fredriks, bewoner sinds 2022">
         <p>Kees Fredriks</p>
         <p>2022 - Heden</p>
       </div>
 
       <div class="bewoner-card">
-        <img src="img/Geert.JPG" alt="Geert">
+        <img src="img/Geert.JPG" alt="Portretfoto van Geert Rinsma, bewoner sinds 2022">
         <p>Geert Rinsma</p>
         <p>2022 - Heden</p>
       </div>
 
       <div class="bewoner-card">
-        <img src="img/Twan.JPG" alt="Twan">
+        <img src="img/Twan.JPG" alt="Portretfoto van Twan Geessinck, bewoner sinds 2022">
         <p>Twan Geessinck</p>
         <p>2022 - Heden</p>
       </div>
 
       <div class="bewoner-card">
-        <img src="img/Marcel.JPG" alt="Marcel">
+        <img src="img/Marcel.JPG" alt="Portretfoto van Marcel Hoonakker, bewoner sinds 2023">
         <p>Marcel Hoonakker</p>
         <p>2023 - Heden</p>
       </div>
 
       <div class="bewoner-card">
-        <img src="img/Dex.JPG" alt="Dex">
+        <img src="img/Dex.JPG" alt="Portretfoto van Dex Ipema, bewoner sinds 2024">
         <p>Dex Ipema</p>
         <p>2024 - Heden</p>
       </div>
 
       <div class="bewoner-card">
-        <img src="img/Mart.png" alt="Mart">
+        <img src="img/Mart.png" alt="Portretfoto van Mart v. Hees, bewoner sinds 2025">
         <p>Mart v. Hees</p>
         <p>2025 - Heden</p>
       </div>
+    </div>
+  </main>
 
-      
+  <script src="auth.js"></script>
+  <script src="nav-loader.js"></script>
+</body>
+</html>

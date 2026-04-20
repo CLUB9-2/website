@@ -2,9 +2,15 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Avondetuh — CLUB 9-2</title>
+  <title>Avondeten — CLUB 9-2</title>
+  <meta name="description" content="Week-overzicht van wie kookt, wie eet, en wat er op tafel komt bij CLUB 9-2.">
+  <meta property="og:title" content="CLUB 9-2 — Avondeten">
+  <meta property="og:description" content="Wie kookt er deze week? Meld je aan of af.">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
   <style>
     .av-wrap {
       max-width: 1080px;
@@ -203,28 +209,9 @@
   </style>
 </head>
 <body>
-  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
-    <a href="index.html" style="margin-right:20px;">
-      <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
-    </a>
-    <a href="index.html#bottom">Over 9-2</a>
-    <a href="avondeten.html">Avondeten</a>
-    <a href="huidige-bewoners.html">Huidige Bewoners</a>
-    <a href="hal-van-faam.html">Hal van Faam</a>
-    <a href="bierkoningschap.html">Bierkoningschap</a>
-    <a href="contact.html">Contact</a>
-    <div class="dropdown">
-      <drop class="dropbtn">Gereedschappen</drop>
-      <div class="dropdown-content">
-        <a href="biertimer.html">Biertimer</a>
-        <a href="namenkiezer.html">Namenkiezer</a>
-        <a href="soundboard.html">Soundboard</a>
-      </div>
-    </div>
-    <a href="login.html" style="color:#384c60; text-decoration:none;" id="nav-login-link">Inloggen</a>
-  </nav>
+  <div id="nav-placeholder"></div>
 
-  <main>
+  <main id="main">
     <div class="av-wrap">
       <h2 style="text-align:center; margin-top:20px;">Avondeten</h2>
 
@@ -248,10 +235,8 @@
   </main>
 
   <script>
-  const SUPABASE_URL  = 'https://yqrmrfuvsdsckqcbmkyb.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlxcm1yZnV2c2RzY2txY2Jta3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0Mjc0NDYsImV4cCI6MjA5MjAwMzQ0Nn0.GG1R1V-2iXuEVTpbIL8wX5qjW4Qjk91oMLY4Dy-G0xw';
-  const { createClient } = supabase;
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+  // Supabase client initialized globally by supabase-client.js as window.sb
+  const sb = window.sb;
 
   // ===  Helpers ===
   const DAY_NAMES   = ['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag','Zondag'];
@@ -577,25 +562,24 @@
   }
 
   // === Init ===
+  // nav-login-link (Inloggen/Uitloggen) is handled globally by auth.js.
   async function init() {
     const { data: { session: s } } = await sb.auth.getSession();
     session = s;
     isAdmin = !!s;
-
-    const loginLink = document.getElementById('nav-login-link');
-    if (isAdmin) {
-      loginLink.textContent = 'Uitloggen';
-      loginLink.onclick = async (e) => {
-        e.preventDefault();
-        await sb.auth.signOut();
-        location.reload();
-      };
-    }
-
     await renderWeek();
   }
 
+  sb.auth.onAuthStateChange(async (_ev, s) => {
+    session = s;
+    isAdmin = !!s;
+    await renderWeek();
+  });
+
   init();
   </script>
+
+  <script src="auth.js"></script>
+  <script src="nav-loader.js"></script>
 </body>
 </html>

@@ -2,8 +2,13 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Namenkiezer</title>
+  <title>Namenkiezer — CLUB 9-2</title>
+  <meta name="description" content="Kies willekeurig een naam uit de bewoners.">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
   <style>
     /* Namenkiezer container */
     #chosenName {
@@ -36,30 +41,10 @@
   </style>
 </head>
 <body>
-  <!-- Navbar (unchanged) -->
-  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
-    <a href="index.html" style="margin-right:20px;">
-      <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
-    </a>
-    <a href="index.html#bottom">Over 9-2</a>
-    <a href="avondeten.html">Avondeten</a>
-    <a href="huidige-bewoners.html">Huidige Bewoners</a>
-    <a href="hal-van-faam.html">Hal van Faam</a>
-    <a href="bierkoningschap.html">Bierkoningschap</a>
-    <a href="contact.html">Contact</a>
-    <div class="dropdown">
-      <drop class="dropbtn">Gereedschappen</drop>
-      <div class="dropdown-content">
-        <a href="biertimer.html">Biertimer</a>
-        <a href="namenkiezer.html">Namenkiezer</a>
-        <a href="soundboard.html">Soundboard</a>
-      </div>
-    </div>
-    <a href="login.html" style="color:#384c60; text-decoration:none;">Inloggen</a>
-  </nav>
+  <div id="nav-placeholder"></div>
 
   <!-- Main content -->
-  <main style="text-align: center;">
+  <main id="main" style="text-align: center;">
     <h2>Namenkiezer</h2>
     <p>Klik op de knop om een willekeurige naam te kiezen.</p>
     <button onclick="chooseName()">Kies naam</button>
@@ -125,4 +110,15 @@
       list.style.top = `-${eased * totalHeight}px`;
 
       if (progress < 1) {
-        requestAn
+        requestAnimationFrame(animate);
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+  </script>
+
+  <script src="auth.js"></script>
+  <script src="nav-loader.js"></script>
+</body>
+</html>

@@ -2,38 +2,21 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>CLUB 9-2</title>
+  <title>CLUB 9-2 — Studentenhuis Enschede</title>
+  <meta name="description" content="CLUB 9-2 — studentenhuis in Enschede. 12 mannen, bier, traditie sinds 2010.">
+  <meta property="og:title" content="CLUB 9-2">
+  <meta property="og:description" content="Het vetste mannenhuis van Enschede. 12 mannen, bier, traditie sinds 2010.">
+  <meta property="og:image" content="img/logo.svg">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
 </head>
 <body>
-  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
-  <!-- Logo on the left, slightly separated from the other buttons -->
-  <a href="index.html" style="margin-right:20px;">
-    <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
-  </a>
+  <div id="nav-placeholder"></div>
 
-  <!-- Navigation links -->
-  <a href="index.html#bottom">Over 9-2</a>
-  <a href="avondeten.html">Avondeten</a>
-  <a href="huidige-bewoners.html">Huidige Bewoners</a>
-  <a href="hal-van-faam.html">Hal van Faam</a>
-  <a href="bierkoningschap.html">Bierkoningschap</a>
-  <a href="contact.html">Contact</a>
-
-  <!-- Dropdown -->
-  <div class="dropdown">
-    <drop class="dropbtn">Gereedschappen</drop>
-    <div class="dropdown-content">
-      <a href="biertimer.html">Biertimer</a>
-      <a href="namenkiezer.html">Namenkiezer</a>
-      <a href="soundboard.html">Soundboard</a>
-    </div>
-  </div>
-  <a href="login.html" style="color:#384c60; text-decoration:none;">Inloggen</a>
-</nav>
-
-
-  <main>
+  <main id="main">
     <div class = "section section-top" id="top">
       <div class = "grid-home" id = home>
         <div class="card">
@@ -52,4 +35,13 @@
           <img src="img/HuisBuiten.jpg" alt="HuisBuiten" style="Width:100%;">
         </div>
         <div class="card">
-          <h2>CLUB 9-2 is het vetste mannenhuis van Enschede. Ons studentenhuis wordt bewoond door een hechte groep van 12 mannen die graag dingen organiseren en ondernemen. Dingen die wij bijvoorbeeld doen zijn: Speciaalbieravonden, flatweekend, feesten, uitgaan of gewoon lekker samen 
+          <h2>CLUB 9-2 is het vetste mannenhuis van Enschede. Ons studentenhuis wordt bewoond door een hechte groep van 12 mannen die graag dingen organiseren en ondernemen. Dingen die wij bijvoorbeeld doen zijn: Speciaalbieravonden, flatweekend, feesten, uitgaan of gewoon lekker samen een biertje drinken op de bank.</h2>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="auth.js"></script>
+  <script src="nav-loader.js"></script>
+</body>
+</html>

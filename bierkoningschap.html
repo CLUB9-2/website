@@ -2,10 +2,16 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Bierkoningschap</title>
+  <title>Bierkoningschap — CLUB 9-2</title>
+  <meta name="description" content="Overzicht van alle bierkoningen van CLUB 9-2 sinds 2010, met grafiek en statistieken.">
+  <meta property="og:title" content="CLUB 9-2 — Bierkoningschap">
+  <meta property="og:description" content="63 regeerperioden sinds 2010. Zie wie de meeste bier dronk per dag.">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
   <style>
     .bk-wrap {
       max-width: 1200px;
@@ -239,31 +245,91 @@
       table.bk-table th, table.bk-table td { padding: 6px 6px; }
       .bk-form-grid { grid-template-columns: repeat(2, 1fr); }
     }
+
+    /* Toast container */
+    .bk-toasts {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1000;
+      max-width: min(360px, 90vw);
+    }
+    .bk-toast {
+      background: #000524;
+      border: 1px solid #384c60;
+      border-left: 4px solid #ffde00;
+      border-radius: 6px;
+      padding: 12px 14px;
+      color: #ffde00;
+      font-size: 0.95em;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: bk-toast-in 0.2s ease-out;
+    }
+    .bk-toast.bk-toast-error   { border-left-color: #cc4444; }
+    .bk-toast.bk-toast-success { border-left-color: #5cb85c; }
+    .bk-toast-actions { margin-left: auto; display: flex; gap: 6px; }
+    .bk-toast-actions button {
+      padding: 4px 10px;
+      font-size: 0.85em;
+      margin: 0;
+      min-height: 28px;
+      min-width: 0;
+      box-shadow: none;
+    }
+    @keyframes bk-toast-in {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Modal (delete confirm) */
+    .bk-modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 900;
+    }
+    .bk-modal {
+      background: #000524;
+      border: 1px solid #384c60;
+      border-radius: 10px;
+      padding: 24px;
+      max-width: min(420px, 90vw);
+      color: #ffde00;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.6);
+    }
+    .bk-modal h4 { margin: 0 0 12px; color: #ffde00; font-size: 1.3em; }
+    .bk-modal p  { margin: 0 0 18px; color: #8b9bb4; font-size: 1em; }
+    .bk-modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+    /* Spinner */
+    .bk-spinner {
+      display: inline-block;
+      width: 1em; height: 1em;
+      margin-left: 6px;
+      border: 2px solid rgba(6,15,45,0.25);
+      border-top-color: #060f2d;
+      border-radius: 50%;
+      animation: bk-spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes bk-spin { to { transform: rotate(360deg); } }
+
+    button[disabled] { opacity: 0.7; cursor: not-allowed; }
   </style>
 </head>
 <body>
-  <nav style="display:flex; justify-content:center; align-items:center; gap:12px; padding:10px 20px;">
-    <a href="index.html" style="margin-right:20px;">
-      <img src="img/logo.svg" alt="CLUB 9-2 Logo" style="height:50px; display:block;">
-    </a>
-    <a href="index.html#bottom">Over 9-2</a>
-    <a href="avondeten.html">Avondeten</a>
-    <a href="huidige-bewoners.html">Huidige Bewoners</a>
-    <a href="hal-van-faam.html">Hal van Faam</a>
-    <a href="bierkoningschap.html">Bierkoningschap</a>
-    <a href="contact.html">Contact</a>
-    <div class="dropdown">
-      <drop class="dropbtn">Gereedschappen</drop>
-      <div class="dropdown-content">
-        <a href="biertimer.html">Biertimer</a>
-        <a href="namenkiezer.html">Namenkiezer</a>
-        <a href="soundboard.html">Soundboard</a>
-      </div>
-    </div>
-    <a href="login.html" style="color:#384c60; text-decoration:none;" id="nav-login-link">Inloggen</a>
-  </nav>
+  <div id="nav-placeholder"></div>
 
-  <main>
+  <!-- Toast container (aria-live so screen readers announce updates) -->
+  <div class="bk-toasts" id="bk-toasts" aria-live="polite" aria-atomic="false"></div>
+
+  <main id="main">
     <div class="bk-wrap">
       <h2 style="text-align:center; margin-top: 20px;">Bierkoningschap</h2>
       <p style="text-align:center; max-width:800px; margin: 10px auto 0;">
@@ -324,7 +390,7 @@
             <label>Gem. BK<input type="text" name="gem_bk" placeholder="bijv. 3,14"></label>
             <label>Totaal huis<input type="text" name="totaal_huis" placeholder="bijv. 2000"></label>
             <label>Gem. huis<input type="text" name="gem_huis" placeholder="bijv. 25,5"></label>
-            <label>% v. huis<input type="text" name="pct" placeholder="bijv. 0,15"></label>
+            <label>% v. huis (als fractie)<input type="text" name="pct" placeholder="bijv. 0,15 (= 15%)"></label>
           </div>
           <button type="submit" class="bk-btn">Toevoegen</button>
           <span class="bk-admin-msg" id="bk-add-msg"></span>
@@ -349,15 +415,15 @@
       <table class="bk-table" id="bk-table" style="display:none;">
         <thead>
           <tr>
-            <th data-key="datum" data-type="date">Einddatum &#x25B2;&#x25BC;</th>
-            <th data-key="bierkoning" data-type="str">Bierkoning &#x25B2;&#x25BC;</th>
-            <th data-key="dagen" data-type="num">Dagen &#x25B2;&#x25BC;</th>
-            <th data-key="totaal_bk" data-type="num">Totaal BK &#x25B2;&#x25BC;</th>
-            <th data-key="gem_bk" data-type="num">Gem. BK &#x25B2;&#x25BC;</th>
-            <th data-key="totaal_huis" data-type="num">Totaal huis &#x25B2;&#x25BC;</th>
-            <th data-key="gem_huis" data-type="num">Gem. huis &#x25B2;&#x25BC;</th>
-            <th data-key="pct" data-type="num">% v. huis &#x25B2;&#x25BC;</th>
-            <th id="bk-actions-col" style="display:none;"></th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="datum"       data-type="date">Einddatum &#x25B2;&#x25BC;</th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="bierkoning"  data-type="str">Bierkoning &#x25B2;&#x25BC;</th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="dagen"       data-type="num">Dagen &#x25B2;&#x25BC;</th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="totaal_bk"   data-type="num">Totaal BK &#x25B2;&#x25BC;</th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="gem_bk"      data-type="num">Gem. BK &#x25B2;&#x25BC;</th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="totaal_huis" data-type="num">Totaal huis &#x25B2;&#x25BC;</th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="gem_huis"    data-type="num">Gem. huis &#x25B2;&#x25BC;</th>
+            <th scope="col" role="button" tabindex="0" aria-sort="none" data-key="pct"         data-type="num">% v. huis &#x25B2;&#x25BC;</th>
+            <th scope="col" id="bk-actions-col" style="display:none;"></th>
           </tr>
         </thead>
         <tbody id="bk-tbody"></tbody>
@@ -367,11 +433,117 @@
   </main>
 
   <script>
-  // === Supabase init ===
-  const SUPABASE_URL  = 'https://yqrmrfuvsdsckqcbmkyb.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlxcm1yZnV2c2RzY2txY2Jta3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0Mjc0NDYsImV4cCI6MjA5MjAwMzQ0Nn0.GG1R1V-2iXuEVTpbIL8wX5qjW4Qjk91oMLY4Dy-G0xw';
-  const { createClient } = supabase;
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+  // === Supabase client is initialized globally by supabase-client.js as window.sb ===
+  const sb = window.sb;
+
+  // === Toast + Modal helpers (admin UX) ===
+  const toastsEl = document.getElementById("bk-toasts");
+
+  /**
+   * Show a dismissible toast.
+   * @param {string} msg                      Message text.
+   * @param {object} [opts]
+   * @param {"info"|"success"|"error"} [opts.type="info"]
+   * @param {number} [opts.duration=4000]     ms before auto-dismiss. 0 = sticky.
+   * @param {Array<{label:string, onClick:(close:Function)=>void}>} [opts.actions]
+   * @returns {{close: Function}}
+   */
+  function showToast(msg, opts = {}) {
+    const { type = "info", duration = 4000, actions = [] } = opts;
+    const el = document.createElement("div");
+    el.className = "bk-toast" + (type === "error" ? " bk-toast-error" : type === "success" ? " bk-toast-success" : "");
+    el.setAttribute("role", type === "error" ? "alert" : "status");
+
+    const text = document.createElement("span");
+    text.textContent = msg;
+    el.appendChild(text);
+
+    let timer = null;
+    const close = () => {
+      if (timer) clearTimeout(timer);
+      if (el.parentNode) el.parentNode.removeChild(el);
+    };
+
+    if (actions.length) {
+      const group = document.createElement("span");
+      group.className = "bk-toast-actions";
+      actions.forEach(a => {
+        const btn = document.createElement("button");
+        btn.className = "bk-btn bk-btn-sm bk-btn-secondary";
+        btn.type = "button";
+        btn.textContent = a.label;
+        btn.addEventListener("click", () => a.onClick(close));
+        group.appendChild(btn);
+      });
+      el.appendChild(group);
+    }
+
+    toastsEl.appendChild(el);
+    if (duration > 0) timer = setTimeout(close, duration);
+    return { close };
+  }
+
+  /**
+   * Show a confirm modal. Returns a Promise<boolean>.
+   */
+  function confirmModal(title, message, { okLabel = "Verwijderen", cancelLabel = "Annuleren", danger = true } = {}) {
+    return new Promise(resolve => {
+      const backdrop = document.createElement("div");
+      backdrop.className = "bk-modal-backdrop";
+      backdrop.setAttribute("role", "dialog");
+      backdrop.setAttribute("aria-modal", "true");
+      backdrop.setAttribute("aria-labelledby", "bk-modal-title");
+
+      const modal = document.createElement("div");
+      modal.className = "bk-modal";
+      modal.innerHTML = `
+        <h4 id="bk-modal-title"></h4>
+        <p></p>
+        <div class="bk-modal-actions">
+          <button type="button" class="bk-btn bk-btn-secondary" data-act="cancel"></button>
+          <button type="button" class="bk-btn ${danger ? 'bk-btn-danger' : ''}" data-act="ok"></button>
+        </div>
+      `;
+      modal.querySelector("h4").textContent = title;
+      modal.querySelector("p").textContent  = message;
+      modal.querySelector('[data-act="cancel"]').textContent = cancelLabel;
+      modal.querySelector('[data-act="ok"]').textContent     = okLabel;
+
+      const cleanup = (result) => {
+        document.removeEventListener("keydown", onKey);
+        if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
+        resolve(result);
+      };
+      const onKey = (e) => {
+        if (e.key === "Escape") cleanup(false);
+        if (e.key === "Enter")  cleanup(true);
+      };
+
+      modal.querySelector('[data-act="cancel"]').addEventListener("click", () => cleanup(false));
+      modal.querySelector('[data-act="ok"]').addEventListener("click",     () => cleanup(true));
+      backdrop.addEventListener("click", (e) => { if (e.target === backdrop) cleanup(false); });
+      document.addEventListener("keydown", onKey);
+
+      backdrop.appendChild(modal);
+      document.body.appendChild(backdrop);
+      modal.querySelector('[data-act="ok"]').focus();
+    });
+  }
+
+  /**
+   * Set a button into a loading state (disabled + spinner). Returns a function that restores it.
+   */
+  function setLoading(btn, label = "Bezig...") {
+    if (!btn) return () => {};
+    const origHTML     = btn.innerHTML;
+    const origDisabled = btn.disabled;
+    btn.disabled = true;
+    btn.innerHTML = `${label}<span class="bk-spinner" aria-hidden="true"></span>`;
+    return () => {
+      btn.disabled  = origDisabled;
+      btn.innerHTML = origHTML;
+    };
+  }
 
   // === Helpers ===
   const fmtNL   = (n, d=2) => (n==null ? "" : (+n).toLocaleString("nl-NL", {minimumFractionDigits:d, maximumFractionDigits:d}));
@@ -517,20 +689,32 @@
   }
 
   // === Sort ===
+  function doSort(th) {
+    const key  = th.dataset.key;
+    const type = th.dataset.type;
+    if (sortState.key === key) sortState.dir *= -1;
+    else { sortState.key = key; sortState.dir = (type === "str" ? 1 : -1); }
+    const sorted = [...reigns].sort((a,b) => {
+      let av = a[key], bv = b[key];
+      if (av == null) av = type === "str" ? "" : -Infinity;
+      if (bv == null) bv = type === "str" ? "" : -Infinity;
+      if (type === "str") return av.localeCompare(bv) * sortState.dir;
+      return (av - bv) * sortState.dir;
+    });
+    // Update aria-sort on all headers
+    document.querySelectorAll("#bk-table thead th[data-key]").forEach(h => {
+      if (h.dataset.key === sortState.key) {
+        h.setAttribute("aria-sort", sortState.dir === 1 ? "ascending" : "descending");
+      } else {
+        h.setAttribute("aria-sort", "none");
+      }
+    });
+    renderTable(sorted);
+  }
   document.querySelectorAll("#bk-table thead th[data-key]").forEach(th => {
-    th.addEventListener("click", () => {
-      const key  = th.dataset.key;
-      const type = th.dataset.type;
-      if (sortState.key === key) sortState.dir *= -1;
-      else { sortState.key = key; sortState.dir = (type === "str" ? 1 : -1); }
-      const sorted = [...reigns].sort((a,b) => {
-        let av = a[key], bv = b[key];
-        if (av == null) av = type === "str" ? "" : -Infinity;
-        if (bv == null) bv = type === "str" ? "" : -Infinity;
-        if (type === "str") return av.localeCompare(bv) * sortState.dir;
-        return (av - bv) * sortState.dir;
-      });
-      renderTable(sorted);
+    th.addEventListener("click", () => doSort(th));
+    th.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); doSort(th); }
     });
   });
 
@@ -575,7 +759,7 @@
           <td><input type="text"   id="e-gem_huis"    value="${r.gem_huis ?? ''}"></td>
           <td><input type="text"   id="e-pct"         value="${r.pct ?? ''}"></td>
           <td>
-            <button class="bk-btn bk-btn-sm" onclick="saveEdit('${id}')">Opslaan</button>
+            <button class="bk-btn bk-btn-sm" onclick="saveEdit(event, '${id}')">Opslaan</button>
             <button class="bk-btn bk-btn-sm bk-btn-secondary" onclick="reloadData()">Annuleer</button>
           </td>
         `;
@@ -583,7 +767,9 @@
     });
   }
 
-  async function saveEdit(id) {
+  async function saveEdit(ev, id) {
+    const btn = ev?.currentTarget instanceof HTMLButtonElement ? ev.currentTarget : null;
+    const restore = setLoading(btn, "Opslaan...");
     const payload = {
       datum:       document.getElementById("e-datum").value,
       bierkoning:  document.getElementById("e-bierkoning").value,
@@ -595,26 +781,139 @@
       pct:         parseNL(document.getElementById("e-pct").value),
     };
     const { error } = await sb.from('reigns').update(payload).eq('id', id);
-    if (error) { alert("Fout bij opslaan: " + error.message); return; }
+    restore();
+    if (error) {
+      showToast("Fout bij opslaan: " + error.message, { type: "error", duration: 6000 });
+      return;
+    }
+    showToast("Opgeslagen.", { type: "success", duration: 2500 });
     await reloadData();
   }
 
   async function deleteReign(id) {
     const r = reigns.find(x => x.id === id);
     if (!r) return;
-    if (!confirm(`Verwijder reign van ${r.bierkoning} (${r.datum})?`)) return;
+
+    const ok = await confirmModal(
+      "Reign verwijderen",
+      `Weet je zeker dat je de reign van ${r.bierkoning} (${fmtDate(r.datum)}) wilt verwijderen?`,
+      { okLabel: "Verwijderen", cancelLabel: "Annuleren", danger: true }
+    );
+    if (!ok) return;
+
+    // Snapshot the row BEFORE delete so we can undo (client-side only: a new id
+    // will be generated on re-insert, so foreign-key references — if any —
+    // would not be restored. Fine for this site.)
+    const snapshot = { ...r };
+    delete snapshot.id;        // let the DB allocate a new id on re-insert
+    delete snapshot.created_at; // also let DB default recreate it, if present
+
     const { error } = await sb.from('reigns').delete().eq('id', id);
-    if (error) { alert("Fout bij verwijderen: " + error.message); return; }
+    if (error) {
+      showToast("Fout bij verwijderen: " + error.message, { type: "error", duration: 6000 });
+      return;
+    }
     await reloadData();
+
+    // Offer 5-second undo
+    showToast(`Reign van ${r.bierkoning} verwijderd.`, {
+      type: "success",
+      duration: 5000,
+      actions: [{
+        label: "Ongedaan maken",
+        onClick: async (close) => {
+          close();
+          const undoToast = showToast("Bezig met ongedaan maken...", { duration: 0 });
+          const { error: insErr } = await sb.from('reigns').insert(snapshot);
+          undoToast.close();
+          if (insErr) {
+            showToast("Ongedaan maken mislukt: " + insErr.message, { type: "error", duration: 6000 });
+            return;
+          }
+          showToast("Hersteld.", { type: "success", duration: 2500 });
+          await reloadData();
+        }
+      }]
+    });
   }
 
   // === Admin: add form ===
   document.getElementById("bk-add-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = e.target;
+    const submitBtn = f.querySelector('button[type="submit"]');
+    const restore = setLoading(submitBtn, "Toevoegen...");
     const payload = {
       datum:       f.datum.value,
       bierkoning:  f.bierkoning.value,
       dagen:       parseInt(f.dagen.value),
       totaal_bk:   parseNL(f.totaal_bk.value),
-      gem_bk:      p
+      gem_bk:      parseNL(f.gem_bk.value),
+      totaal_huis: parseNL(f.totaal_huis.value),
+      gem_huis:    parseNL(f.gem_huis.value),
+      pct:         parseNL(f.pct.value),
+    };
+    const msgEl = document.getElementById("bk-add-msg");
+    msgEl.textContent = "";
+    const { error } = await sb.from('reigns').insert(payload);
+    restore();
+    if (error) {
+      showToast("Fout bij toevoegen: " + error.message, { type: "error", duration: 6000 });
+      return;
+    }
+    showToast("Reign toegevoegd.", { type: "success", duration: 2500 });
+    f.reset();
+    await reloadData();
+  });
+
+  // === Logout ===
+  document.getElementById("bk-logout-btn").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    location.reload();
+  });
+
+  // === Auth / init ===
+  // nav-login-link (Inloggen/Uitloggen) is handled globally by auth.js.
+  function applyAdminUI() {
+    const adminBox  = document.getElementById("bk-admin");
+    const loginHint = document.getElementById("bk-login-hint");
+    const actionsTh = document.getElementById("bk-actions-col");
+
+    if (isAdmin) {
+      adminBox.style.display  = "block";
+      loginHint.style.display = "none";
+      actionsTh.style.display = "table-cell";
+    } else {
+      adminBox.style.display  = "none";
+      loginHint.style.display = "block";
+      actionsTh.style.display = "none";
+    }
+  }
+
+  async function init() {
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      isAdmin = !!session;
+      applyAdminUI();
+      await reloadData();
+    } catch (e) {
+      showError("Initialisatie faalde: " + (e?.message || e));
+      console.error(e);
+    }
+  }
+
+  // React to auth changes (sign-out in another tab, etc.)
+  sb.auth.onAuthStateChange((_ev, session) => {
+    isAdmin = !!session;
+    applyAdminUI();
+    // Rerender so admin action buttons in the table show/hide.
+    if (reigns.length) renderTable(reigns);
+  });
+
+  init();
+  </script>
+
+  <script src="auth.js"></script>
+  <script src="nav-loader.js"></script>
+</body>
+</html>
